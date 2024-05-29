@@ -1,0 +1,7 @@
+numpy
+matplotlib
+torch
+pyro-ppl
+scipy
+arviz
+ipykernel
