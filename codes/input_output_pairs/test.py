@@ -99,23 +99,33 @@ def get_data(N=50, D_X=1, sigma_obs=0.05, N_test=500):
     true = np.zeros(X.shape)
     for jj in range(0, len(idxs[1:])):
         true[idxs[jj-1]:idxs[jj]] = params[jj]
-    X = true.reshape(-1, 1)
+    Y = true.reshape(-1, 1) 
 
     model = deconvolution(int(np.round(N/2)), int(N/16), 'reflect')
     A = model.linear_operator(N)
     #A = A[1::2, :]
 
-    Y = A@X
+    X = A@Y
 
-    Y = Y.reshape(-1, 1)
+    X = X.reshape(-1, 1)
+    X = X + np.random.normal(0, 0.05, X.shape)
     
-    print(A.shape)
+    print(X.shape)
 
     assert X.shape == (N, D_X)
     assert Y.shape == (N, D_Y)
 
-    X_test = jnp.linspace(-1.3, 1.3, N_test)
-    X_test = jnp.power(X_test[:, np.newaxis], jnp.arange(D_X))
+    X_test = jnp.linspace(0, 1, N_test)
+    
+    true = np.zeros(X_test.shape)
+    for jj in range(0, len(idxs[1:])):
+        true[idxs[jj-1]:idxs[jj]] = params[jj]
+    X_test = true.reshape(-1, 1)
+    
+    X_test = A@Y
+    X_test = X_test + np.random.normal(0, 0.05, X_test.shape)
+
+
 
     return X, Y, X_test
 
@@ -146,11 +156,16 @@ def main(args):
     fig, ax = plt.subplots(figsize=(8, 6), constrained_layout=True)
 
     # plot training data
-    ax.plot(X, Y, "kx")
+    ax.plot(X, label='train_data')
+    ax.plot(Y, label='true')
     # plot 90% confidence level of predictions
 
-    ax.plot(X_test, mean_prediction, "blue", ls="solid", lw=2.0)
+    ax.plot(X_test, label='test_data')
+    ax.plot(mean_prediction, label='prediction')
 
+    ax.plot(percentiles[0,:])
+
+    plt.legend()
 
     plt.savefig("bnn_plot.pdf")
 
