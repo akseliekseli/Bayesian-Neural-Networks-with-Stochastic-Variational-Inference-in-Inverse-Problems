@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp
 import scipy.stats as stats
-import arviz as az
+
 
 import torch
 import torch.nn as nn
@@ -17,7 +17,11 @@ from pyro.nn import PyroModule, PyroSample
 from models import deconvolution
 
 
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+torch.set_default_device(device)
+
+print(torch.get_default_device())
 
 
 # Parameters
@@ -35,7 +39,7 @@ d_k = 40
 
 h = domain[1] / N
 
-n_datasize = 10000
+n_datasize = 1000
 dataset = np.zeros((n_datasize, n))
 x = np.linspace(domain[0],domain[1], n)
 
@@ -78,17 +82,17 @@ class BNN(PyroModule):
         super().__init__()
         self.fc1 = PyroModule[nn.Linear](h1, h2)
         self.fc1.weight = PyroSample(dist.Normal(0.5,
-                                                torch.tensor(0.5, device=device)).expand([h2, h1]).to_event(2))
+                                                torch.tensor(0.5)).expand([h2, h1]).to_event(2))
         self.fc1.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.5, device=device)).expand([h2]).to_event(1))
+                                               torch.tensor(0.5)).expand([h2]).to_event(1))
         
         #self.fc1 = nn.Linear(h1, h2)
 
         self.fc2 = PyroModule[nn.Linear](h1, h2)
         self.fc2.weight = PyroSample(dist.Cauchy(0.5,
-                                                torch.tensor(0.5, device=device)).expand([h2, h2]).to_event(2))
+                                                torch.tensor(0.5)).expand([h2, h2]).to_event(2))
         self.fc2.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.05, device=device)).expand([h2]).to_event(1))
+                                               torch.tensor(0.05)).expand([h2]).to_event(1))
 
         self.relu = nn.ReLU()
 
@@ -96,11 +100,11 @@ class BNN(PyroModule):
         
         x = x#.reshape(-1, 1)
 
-        x = self.relu(self.fc1(x))#.squeeze()
-        mu = self.relu(self.fc2(x))
+        mu = self.relu(self.fc1(x))#.squeeze()
+        #mu = self.relu(self.fc2(x))
         #mu = x
         sigma = pyro.sample("sigma", dist.Uniform(0.,
-                                                torch.tensor(1.0, device=device)))
+                                                torch.tensor(1.0)))
     
         with pyro.plate("data", 200):
             obs = pyro.sample("obs", dist.Normal(mu, sigma), obs=y)
@@ -117,12 +121,15 @@ nuts_kernel = pyro.infer.NUTS(bnn_model, jit_compile=True)
 
 # Define MCMC sampler, get 50 posterior samples
 bnn_mcmc = pyro.infer.MCMC(nuts_kernel,
-                        num_samples=50,
-                        warmup_steps=100)
+                        num_samples=300,
+                        warmup_steps=300)
+
 
 # Convert data to PyTorch tensors
-x_train_gpu = torch.from_numpy(y_data).float().to(device)
-y_train_gpu = torch.from_numpy(dataset).float().to(device)
+x_train_gpu = torch.from_numpy(y_data).float().cuda()
+y_train_gpu = torch.from_numpy(dataset).float().cuda()
+
+
 
 # Run MCMC
 bnn_mcmc.run(x_train_gpu, y_train_gpu)
@@ -139,12 +146,13 @@ y_train = y_train_gpu.cpu()
 
 preds = preds_gpu['obs'].cpu()
 
-plt.plot(torch.mean(preds, axis=0))
-plt.plot(x_train[0,:])
-plt.plot(y_train[0, :])
+plt.plot(x, torch.mean(preds, axis=0))
+plt.plot(t, x_train[0,:])
+plt.plot(x, y_train[0, :])
 
 
 plt.legend(['BNN', 'Noisy', 'True'])
 
-plt.show()
+plt.savefig('long_test_one_layer.png')
+
 
