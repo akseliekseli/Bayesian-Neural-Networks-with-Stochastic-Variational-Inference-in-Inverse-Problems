@@ -107,9 +107,9 @@ class BNN(PyroModule):
         
         x = x#.reshape(-1, 1)
 
-        mu = self.relu(self.fc1(x) + self.fc1.bias)
-        mu = self.relu(self.fc2(mu) + self.fc2.bias)
-        mu = self.relu(self.fc3(mu) + self.fc3.bias)
+        mu = self.relu(self.fc1(x))
+        mu = self.relu(self.fc2(mu))
+        mu = self.relu(self.fc3(mu))
         #mu = x
         sigma = pyro.sample("sigma", dist.Uniform(0.,
                                                 torch.tensor(0.05)))
@@ -147,7 +147,7 @@ y_train_gpu = y_train_gpu[:-2,:]
 #bnn_mcmc.run(x_train_gpu, y_train_gpu)
 
 from pyro.infer import SVI, Trace_ELBO
-from pyro.infer.autoguide import AutoDiagonalNormal
+from pyro.infer.autoguide import AutoDiagonalNormal, AutoNormal
 from tqdm.auto import trange
 from pyro.optim import Adam
 
