@@ -85,7 +85,7 @@ class BNN(PyroModule):
         self.fc1.weight = PyroSample(dist.Normal(0.,
                                                 torch.tensor(0.5)).expand([h2, h1]).to_event(2))
         self.fc1.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.5)).expand([h2]).to_event(1))
+                                               torch.tensor(0.05)).expand([h2]).to_event(1))
         
         #self.fc1 = nn.Linear(h1, h2)
 
@@ -107,9 +107,9 @@ class BNN(PyroModule):
         
         x = x#.reshape(-1, 1)
 
-        mu = self.relu(self.fc1(x))
-        mu = self.relu(self.fc2(mu))
-        mu = self.relu(self.fc3(mu))
+        mu = self.relu(self.fc1(x) + self.fc1.bias)
+        mu = self.relu(self.fc2(mu) + self.fc2.bias)
+        mu = self.relu(self.fc3(mu) + self.fc3.bias)
         #mu = x
         sigma = pyro.sample("sigma", dist.Uniform(0.,
                                                 torch.tensor(0.05)))
@@ -129,8 +129,8 @@ nuts_kernel = pyro.infer.NUTS(bnn_model, jit_compile=True)
 
 # Define MCMC sampler, get 50 posterior samples
 bnn_mcmc = pyro.infer.MCMC(nuts_kernel,
-                        num_samples=30,
-                        warmup_steps=30)
+                        num_samples=50,
+                        warmup_steps=50)
 
 
 # Convert data to PyTorch tensors
@@ -176,7 +176,7 @@ preds_gpu = predictive(x_test_gpu)
 
 
 # Save model and guide parameters
-torch.save(predictive, 'svi_model.pt')
+torch.save(predictive, 'svi_model_bias.pt')
 
 
 x_test = x_test_gpu.cpu()
