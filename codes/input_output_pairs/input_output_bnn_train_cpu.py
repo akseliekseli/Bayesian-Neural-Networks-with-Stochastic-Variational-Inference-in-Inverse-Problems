@@ -19,6 +19,8 @@ from models import deconvolution
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+device = 'cpu'
+
 torch.set_default_device(device)
 
 print(torch.get_default_device())
@@ -134,14 +136,14 @@ bnn_mcmc = pyro.infer.MCMC(nuts_kernel,
 
 
 # Convert data to PyTorch tensors
-x_train_gpu = torch.from_numpy(y_data).float().cuda()
-y_train_gpu = torch.from_numpy(dataset).float().cuda()
+x_train = torch.from_numpy(y_data).float()
+y_train = torch.from_numpy(dataset).float()
 
-x_test_gpu = x_train_gpu[-1,:]
-y_test_gpu = y_train_gpu[-1,:]
+x_test = x_train[-1,:]
+y_test = y_train[-1,:]
 
-x_train_gpu = x_train_gpu[:-2,:]
-y_train_gpu = y_train_gpu[:-2,:]
+x_train = x_train[:-2,:]
+y_train = y_train[:-2,:]
 
 # Run MCMC
 #bnn_mcmc.run(x_train_gpu, y_train_gpu)
@@ -156,14 +158,14 @@ adam_params = {"lr": 0.0005, "betas": (0.90, 0.999)}
 optimizer = Adam(adam_params)
 svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO())
 
-num_iterations = 4000
+num_iterations = 5000
 progress_bar = trange(num_iterations)
 
 for j in progress_bar:
 
-    for ii in range(0, x_train_gpu.shape[0]):
-        loss = svi.step(x_train_gpu[ii,:], y_train_gpu[ii,:])
-    progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(x_train_gpu)))
+    for ii in range(0, x_train.shape[0]):
+        loss = svi.step(x_train[ii,:], y_train[ii,:])
+    progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(x_train)))
 
 
 #predictive = pyro.infer.Predictive(model=bnn_model, posterior_samples=bnn_mcmc.get_samples())
@@ -172,17 +174,13 @@ predictive = pyro.infer.Predictive(bnn_model, guide=guide, num_samples=5000)
 #x_train_gpu = torch.from_numpy(y_data).float().cuda()[1,:]
 #y_train_gpu = torch.from_numpy(dataset).float().cuda()[1,:]
 
-preds_gpu = predictive(x_test_gpu)
+preds = predictive(x_test)
 
 
 # Save model and guide parameters
-torch.save(predictive, 'svi_model_bias.pt')
+torch.save(predictive, 'bnn_prior_cpu.pt')
 
-
-x_test = x_test_gpu.cpu()
-y_test = y_test_gpu.cpu()
-
-preds = preds_gpu['obs'].cpu()
+preds = preds['obs']
 
 plt.plot(x, torch.mean(preds, axis=0))
 plt.plot(t, x_test)
@@ -191,6 +189,6 @@ plt.plot(x, y_test)
 
 plt.legend(['BNN', 'Noisy', 'True'])
 
-plt.savefig('long_test_one_layer.png')
+plt.savefig('bnn_prior_cpu.png')
 
 
