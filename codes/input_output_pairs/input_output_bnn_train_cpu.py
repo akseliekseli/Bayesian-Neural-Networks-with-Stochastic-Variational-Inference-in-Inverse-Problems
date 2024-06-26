@@ -30,10 +30,9 @@ print(torch.get_default_device())
 T = 0.05
 N = 100
 
-domain = [0, 1]
-sigma_noise = 0.05
-mu_u = -1
-sigma_2_u = 0.05**2
+domain = [-1, 1]
+sigma_noise = 0.01**2
+
 
 n = int(2*N)
 t = np.linspace(domain[0],domain[1], N)
@@ -85,25 +84,25 @@ class BNN(PyroModule):
         super().__init__()
         self.fc1 = PyroModule[nn.Linear](h1, h2)
         self.fc1.weight = PyroSample(dist.Normal(0.,
-                                                torch.tensor(0.5)).expand([h2, h1]).to_event(2))
+                                                torch.tensor(0.01)).expand([h2, h1]).to_event(2))
         self.fc1.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.05)).expand([h2]).to_event(1))
+                                               torch.tensor(0.01)).expand([h2]).to_event(1))
         
         #self.fc1 = nn.Linear(h1, h2)
 
         self.fc2 = PyroModule[nn.Linear](h1, h2)
         self.fc2.weight = PyroSample(dist.Cauchy(0.,
-                                                torch.tensor(0.5)).expand([h2, h2]).to_event(2))
-        self.fc2.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.05)).expand([h2]).to_event(1))
+                                                torch.tensor(3.0)).expand([h2, h2]).to_event(2))
+        self.fc2.bias = PyroSample(dist.Cauchy(0.,
+                                               torch.tensor(3.0)).expand([h2]).to_event(1))
 
         self.fc3 = PyroModule[nn.Linear](h1, h2)
         self.fc3.weight = PyroSample(dist.Normal(0.,
-                                                torch.tensor(0.5)).expand([h2, h2]).to_event(2))
+                                                torch.tensor(0.01)).expand([h2, h2]).to_event(2))
         self.fc3.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.05)).expand([h2]).to_event(1))
+                                               torch.tensor(0.01)).expand([h2]).to_event(1))
 
-        self.relu = nn.ReLU()
+        self.relu = nn.Tanh()
 
     def forward(self, x, y=None):
         
@@ -158,7 +157,7 @@ adam_params = {"lr": 0.0005, "betas": (0.90, 0.999)}
 optimizer = Adam(adam_params)
 svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO())
 
-num_iterations = 5000
+num_iterations = 1000
 progress_bar = trange(num_iterations)
 
 for j in progress_bar:

@@ -29,9 +29,9 @@ T = 0.05
 N = 100
 
 domain = [0, 1]
-sigma_noise = 0.05
+sigma_noise = 0.01
 mu_u = -1
-sigma_2_u = 0.05**2
+sigma_2_u = 0.01**2
 
 n = int(2*N)
 t = np.linspace(domain[0],domain[1], N)
