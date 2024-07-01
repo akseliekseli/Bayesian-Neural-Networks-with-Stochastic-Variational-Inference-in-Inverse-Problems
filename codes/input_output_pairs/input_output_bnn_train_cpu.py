@@ -28,26 +28,27 @@ print(torch.get_default_device())
 
 # Parameters
 T = 0.05
-N = 100
+n_y = 100
 
 domain = [-1, 1]
 sigma_noise = 0.01**2
 
+n_x = n_y
 
-n = int(2*N)
-t = np.linspace(domain[0],domain[1], N)
+
+t = np.linspace(domain[0],domain[1], n_y)
 t = np.round(t, 3)
 d_k = 40
 
-h = domain[1] / N
+h = domain[1] / n_y
 
-n_datasize = 100
-dataset = np.zeros((n_datasize, n))
-x = np.linspace(domain[0],domain[1], n)
+n_datasize = 6000
+dataset = np.zeros((n_datasize, n_x))
+x = np.linspace(domain[0],domain[1], n_x)
 
 for ii in range(0, n_datasize):
-    n_params = np.random.randint(4, 10)
-    idxs = np.sort(np.random.randint(0+5, n-5, n_params))
+    n_params = np.random.randint(4, 6)
+    idxs = np.sort(np.random.randint(0+5, n_x-5, n_params))
     params = np.sort(np.random.uniform(0, 2, n_params))
     params[::2] = 0
     true = np.zeros(x.shape)
@@ -59,11 +60,11 @@ for ii in range(0, n_datasize):
 
 
 
-model = deconvolution(int(np.round(n/2)), int(n/16), 'reflect')
-A = model.linear_operator(n)
-A = A[1::2, :]
+model = deconvolution(int(np.round(n_x/2)), int(n_x/16), 'reflect')
+A = model.linear_operator(n_x)
+#A = A[1::2, :]
 
-y_data = np.zeros((n_datasize, N))
+y_data = np.zeros((n_datasize, n_y))
 
 for ii in range(0, n_datasize):
     f = dataset[ii, :]
@@ -84,9 +85,9 @@ class BNN(PyroModule):
         super().__init__()
         self.fc1 = PyroModule[nn.Linear](h1, h2)
         self.fc1.weight = PyroSample(dist.Normal(0.,
-                                                torch.tensor(0.01)).expand([h2, h1]).to_event(2))
+                                                torch.tensor(0.05)).expand([h2, h1]).to_event(2))
         self.fc1.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.01)).expand([h2]).to_event(1))
+                                               torch.tensor(0.05)).expand([h2]).to_event(1))
         
         #self.fc1 = nn.Linear(h1, h2)
 
@@ -98,30 +99,31 @@ class BNN(PyroModule):
 
         self.fc3 = PyroModule[nn.Linear](h1, h2)
         self.fc3.weight = PyroSample(dist.Normal(0.,
-                                                torch.tensor(0.01)).expand([h2, h2]).to_event(2))
+                                                torch.tensor(0.05)).expand([h2, h2]).to_event(2))
         self.fc3.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.01)).expand([h2]).to_event(1))
+                                               torch.tensor(0.05)).expand([h2]).to_event(1))
 
-        self.relu = nn.Tanh()
+        self.relu = nn.ReLU()
+        self.tanh = nn.Tanh()
 
     def forward(self, x, y=None):
         
         x = x#.reshape(-1, 1)
 
-        mu = self.relu(self.fc1(x))
+        mu = self.tanh(self.fc1(x))
         mu = self.relu(self.fc2(mu))
         mu = self.relu(self.fc3(mu))
         #mu = x
         sigma = pyro.sample("sigma", dist.Uniform(0.,
                                                 torch.tensor(0.05)))
     
-        with pyro.plate("data", 200):
+        with pyro.plate("data", n_x):
             obs = pyro.sample("obs", dist.Normal(mu, sigma), obs=y)
         
         return mu
     
 
-bnn_model = BNN(h1=N, h2=n)
+bnn_model = BNN(h1=n_y, h2=n_x)
 
 # Set Pyro random seed
 pyro.set_rng_seed(42)
@@ -157,7 +159,7 @@ adam_params = {"lr": 0.0005, "betas": (0.90, 0.999)}
 optimizer = Adam(adam_params)
 svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO())
 
-num_iterations = 1000
+num_iterations = 10
 progress_bar = trange(num_iterations)
 
 for j in progress_bar:
