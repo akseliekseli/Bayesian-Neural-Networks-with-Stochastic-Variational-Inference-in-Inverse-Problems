@@ -1,0 +1,17 @@
+initial:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma2_noise: 0.0001
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.001
+    svi_num_iterations: 6000
+    random_seed: 42
+
+    
+
+  plot_parameters:
+    solution_plot: solution_plot_initial.png
