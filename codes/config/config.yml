@@ -2,16 +2,39 @@ initial:
   n_x: 100
   n_y: 100
   domain: [-1, 1]
-  sigma2_noise: 0.0001
+  sigma2_noise: 0.01
+
+  results_file_name: initial.pickle
 
   bnn_parameters:
 
   training_parameters:
-    learning_rate: 0.001
-    svi_num_iterations: 6000
+    learning_rate: 0.002
+    svi_num_iterations: 8000
     random_seed: 42
 
     
-
   plot_parameters:
     solution_plot: solution_plot_initial.png
+    problem_plot: problem_plot_initial.png
+
+
+large_scale:
+  n_x: 500
+  n_y: 500
+  domain: [-1, 1]
+  sigma2_noise: 0.01
+
+  results_file_name: large_scale.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 20000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_large_scale.png
+    problem_plot: problem_plot_large_scale.png

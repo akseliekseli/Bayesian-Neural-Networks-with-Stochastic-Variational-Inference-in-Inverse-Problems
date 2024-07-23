@@ -3,6 +3,7 @@ import argparse
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 import torch
 import torch.nn as nn
 
@@ -21,6 +22,8 @@ from models import deconvolution
 
 
 
+#plt.rcParams["font.family"] = "Deja Vu"
+plt.rcParams['font.size'] = 32
 
 
 def problem_system(grid: np.array, params)-> np.array:
@@ -191,6 +194,10 @@ def training_bnn_cpu(config, t, A, y_data):
     # Set Pyro random seed
     pyro.set_rng_seed(config['training_parameters']['random_seed'])
 
+    t= torch.from_numpy(t).float()
+    y_data = torch.from_numpy(y_data).float()
+    A = torch.from_numpy(A).float()
+
     # Define Pyro BNN object and training parameters
     bnn_model = BNN(h1=n_y, h2=n_x)
     guide = AutoDiagonalNormal(bnn_model)
@@ -203,7 +210,7 @@ def training_bnn_cpu(config, t, A, y_data):
 
     for j in progress_bar:
         loss = svi.step(t, A, y_data)
-        progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(t_gpu)))
+        progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(t)))
 
     # Get predictions for the solution
     predictive = pyro.infer.Predictive(bnn_model, guide=guide, num_samples=2000, return_sites=["_RETURN"])
@@ -232,9 +239,21 @@ def plot_results(config, t, x, true, y_data, x_preds):
     # Plot the quantile range as a shaded area
     plt.fill_between(x, lower_quantile, upper_quantile, color=line.get_color(), alpha=0.5, label='90% quantile range')
     #plt.plot(t, A@x_solution.numpy(), label='A @ solution')
-    plt.axis([domain[0], domain[1], -0.5, 1.5])
-    plt.legend()
+    plt.axis([domain[0], domain[1], -0.1, 1.5])
+    plt.xlabel('t')
+    plt.ylabel('x')
+
     plt.savefig(f"plots/{config['plot_parameters']['solution_plot']}")
+
+
+def plot_problem(config, t, x, true, y_data):
+    plt.figure()
+    plt.plot(x, true, label='true')
+    plt.plot(t, y_data, label='data')
+
+    plt.axis([domain[0], domain[1], -0.5, 1.5])
+    plt.savefig(f"plots/{config['plot_parameters']['problem_plot']}")
+
 
 
 if __name__ == '__main__':
@@ -246,6 +265,7 @@ if __name__ == '__main__':
     
     # Define if trained on cpu or gpu
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = 'cpu'
     torch.set_default_device(device)
 
     # Get the initial parameters from the config file
@@ -257,13 +277,24 @@ if __name__ == '__main__':
     t, x, A, true, y_data = generate_the_problem(n_x, n_y, domain, sigma2_noise)
 
     
-
     # Convert data to PyTorch tensors
     if device != 'cpu':
         x_preds = training_bnn_gpu(config, t, A, y_data)
     else:
         x_preds = training_bnn_cpu(config, t, A, y_data)
     
+    
+    results = dict({'t': t,
+                            'x': x,
+                            'true': true,
+                            'y_data': y_data,
+                            'x_preds': x_preds})
+    
+    with open(f'results/{config['results_file_name']}', 'wb') as handle:
+        pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+    plot_problem(config, t, x, true, y_data)
     plot_results(config, t, x, true, y_data, x_preds)
     
 
