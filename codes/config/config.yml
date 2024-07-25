@@ -2,7 +2,7 @@ initial:
   n_x: 100
   n_y: 100
   domain: [-1, 1]
-  sigma2_noise: 0.01
+  sigma_noise: 0.01
 
   results_file_name: initial.pickle
 
@@ -23,7 +23,7 @@ large_scale:
   n_x: 500
   n_y: 500
   domain: [-1, 1]
-  sigma2_noise: 0.01
+  sigma_noise: 0.01
 
   results_file_name: large_scale.pickle
 
@@ -31,10 +31,217 @@ large_scale:
 
   training_parameters:
     learning_rate: 0.002
-    svi_num_iterations: 20000
+    svi_num_iterations: 40000
     random_seed: 42
 
     
   plot_parameters:
     solution_plot: solution_plot_large_scale.png
     problem_plot: problem_plot_large_scale.png
+
+
+sigma_002:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.02
+
+  results_file_name: sigma_002.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_002.png
+    problem_plot: problem_plot_sigma_002.png
+
+
+sigma_003:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.03
+
+  results_file_name: sigma_003.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_003.png
+    problem_plot: problem_plot_sigma_003.png
+
+
+sigma_004:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.04
+
+  results_file_name: sigma_004.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_004.png
+    problem_plot: problem_plot_sigma_004.png
+
+
+sigma_005:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.05
+
+  results_file_name: sigma_005.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_005.png
+    problem_plot: problem_plot_sigma_005.png
+
+
+sigma_006:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.03
+
+  results_file_name: sigma_006.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_006.png
+    problem_plot: problem_plot_sigma_006.png
+
+
+sigma_01:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.1
+
+  results_file_name: sigma_01.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_01.png
+    problem_plot: problem_plot_sigma_01.png
+
+
+sigma_02:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.2
+
+  results_file_name: sigma_02.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_02.png
+    problem_plot: problem_plot_sigma_02.png
+
+sigma_03:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.3
+
+  results_file_name: sigma_03.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_03.png
+    problem_plot: problem_plot_sigma_03.png
+
+sigma_04:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.4
+
+  results_file_name: sigma_04.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_04.png
+    problem_plot: problem_plot_sigma_04.png
+
+sigma_05:
+  n_x: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.5
+
+  results_file_name: sigma_05.pickle
+
+  bnn_parameters:
+
+  training_parameters:
+    learning_rate: 0.002
+    svi_num_iterations: 8000
+    random_seed: 42
+
+    
+  plot_parameters:
+    solution_plot: solution_plot_sigma_05.png
+    problem_plot: problem_plot_sigma_05.png

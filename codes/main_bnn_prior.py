@@ -100,7 +100,7 @@ class BNN(PyroModule):
 def generate_the_problem(n_x: int,
                          n_y: int,
                          domain: list,
-                         sigma2_noise: float):
+                         sigma_noise: float):
     # Generate the grid
     t = np.linspace(domain[0],domain[1], n_y)
     t = np.round(t, 3)
@@ -124,7 +124,7 @@ def generate_the_problem(n_x: int,
     temp *= ind
 
     # Create y_data with noise
-    y_data = temp + np.random.normal(0, sigma2_noise, true.shape)
+    y_data = temp + np.random.normal(0, sigma_noise, true.shape)
 
     return t, x, A, true, y_data
 
@@ -162,7 +162,7 @@ def training_bnn_gpu(config, t, A, y_data):
 def generate_the_problem(n_x: int,
                          n_y: int,
                          domain: list,
-                         sigma2_noise: float):
+                         sigma_noise: float):
     # Generate the grid
     t = np.linspace(domain[0],domain[1], n_y)
     t = np.round(t, 3)
@@ -186,7 +186,7 @@ def generate_the_problem(n_x: int,
     temp *= ind
 
     # Create y_data with noise
-    y_data = temp + np.random.normal(0, sigma2_noise, true.shape)
+    y_data = temp + np.random.normal(0, sigma_noise, true.shape)
 
     return t, x, A, true, y_data
 
@@ -272,9 +272,9 @@ if __name__ == '__main__':
     n_x = config['n_x']
     n_y = config['n_y']
     domain = config['domain']
-    sigma2_noise = config['sigma2_noise']
+    sigma_noise = config['sigma_noise']
     
-    t, x, A, true, y_data = generate_the_problem(n_x, n_y, domain, sigma2_noise)
+    t, x, A, true, y_data = generate_the_problem(n_x, n_y, domain, sigma_noise)
 
     
     # Convert data to PyTorch tensors
