@@ -243,7 +243,7 @@ def plot_results(config, t, x, true, y_data, x_preds):
     plt.xlabel('t')
     plt.ylabel('x')
 
-    plt.savefig(f"plots/{config['plot_parameters']['solution_plot']}")
+    plt.savefig(f"plots/{config['name']}_solution.png")
 
 
 def plot_problem(config, t, x, true, y_data):
@@ -252,16 +252,17 @@ def plot_problem(config, t, x, true, y_data):
     plt.plot(t, y_data, label='data')
 
     plt.axis([domain[0], domain[1], -0.5, 1.5])
-    plt.savefig(f"plots/{config['plot_parameters']['problem_plot']}")
+    plt.savefig(f"plots/{config['name']}_problem.png")
 
 
 
 if __name__ == '__main__':
     # Parse the config argument
     parser = argparse.ArgumentParser(description="1D-deconvolution solving with BNN prior")
-    parser.add_argument('--config', type=str, required=True, help='Config to use (use config file)')    
+    parser.add_argument('--type', type=str, required=True, help='Type of config')
+    parser.add_argument('--config', type=str, required=True, help='Config to use (use config file)')
     args = parser.parse_args()
-    config = yaml.safe_load(open("codes/config/config.yml"))[args.config]
+    config = yaml.safe_load(open("codes/config/config.yml"))[args.type][args.config]
     
     # Define if trained on cpu or gpu
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -290,7 +291,7 @@ if __name__ == '__main__':
                             'y_data': y_data,
                             'x_preds': x_preds})
     
-    with open(f'results/{config['results_file_name']}', 'wb') as handle:
+    with open(f'results/{config['name']}.pickle', 'wb') as handle:
         pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
