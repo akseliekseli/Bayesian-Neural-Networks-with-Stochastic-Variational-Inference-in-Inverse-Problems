@@ -214,3 +214,74 @@ sigma:
       learning_rate: 0.002
       svi_num_iterations: 8000
       random_seed: 42
+
+
+
+learning_rate:
+
+  lr_0001:
+
+    name: lr_0001
+
+    n_x: 100
+    n_y: 100
+    domain: [-1, 1]
+    sigma_noise: 0.01
+
+    bnn_parameters:
+
+    training_parameters:
+      learning_rate: 0.001
+      svi_num_iterations: 8000
+      random_seed: 42
+
+      
+
+  lr_0002:
+
+    name: lr_0002
+
+    n_x: 100
+    n_y: 100
+    domain: [-1, 1]
+    sigma_noise: 0.01
+
+    bnn_parameters:
+
+    training_parameters:
+      learning_rate: 0.002
+      svi_num_iterations: 8000
+      random_seed: 42
+
+
+  lr_0005:
+
+    name: lr_0005
+
+    n_x: 100
+    n_y: 100
+    domain: [-1, 1]
+    sigma_noise: 0.01
+
+    bnn_parameters:
+
+    training_parameters:
+      learning_rate: 0.005
+      svi_num_iterations: 8000
+      random_seed: 42
+
+  lr_001:
+
+    name: lr_001
+
+    n_x: 100
+    n_y: 100
+    domain: [-1, 1]
+    sigma_noise: 0.01
+
+    bnn_parameters:
+
+    training_parameters:
+      learning_rate: 0.01
+      svi_num_iterations: 8000
+      random_seed: 42
