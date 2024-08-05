@@ -12,10 +12,10 @@ args = parser.parse_args()
 conf_family = args.conf_family
 
 if conf_family == 'all':
-    for type in config:
-        for conf in config[conf_family]:
+    for conf_type in config:
+        for conf in config[conf_type]:
             print(f'RUNNING CONFIG: {conf}\n')
-            os.system(f"python3 codes/main_bnn_prior.py --type {conf_family} --config {conf}")
+            os.system(f"python3 codes/main_bnn_prior.py --type {conf_type} --config {conf}")
 else:
     for conf in config[conf_family]:
         print(f'RUNNING CONFIG: {conf}\n')

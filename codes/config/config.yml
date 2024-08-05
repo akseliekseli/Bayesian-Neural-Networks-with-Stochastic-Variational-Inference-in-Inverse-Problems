@@ -9,8 +9,25 @@ misc:
     domain: [-1, 1]
     sigma_noise: 0.01
 
-
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
 
     training_parameters:
       learning_rate: 0.002
@@ -28,7 +45,26 @@ misc:
     sigma_noise: 0.01
 
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -47,7 +83,26 @@ sigma:
     domain: [-1, 1]
     sigma_noise: 0.02
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -65,7 +120,26 @@ sigma:
     domain: [-1, 1]
     sigma_noise: 0.03
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -82,7 +156,26 @@ sigma:
     domain: [-1, 1]
     sigma_noise: 0.04
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -101,7 +194,26 @@ sigma:
     domain: [-1, 1]
     sigma_noise: 0.05
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -117,9 +229,28 @@ sigma:
     n_x: 100
     n_y: 100
     domain: [-1, 1]
-    sigma_noise: 0.03
+    sigma_noise: 0.06
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -136,7 +267,26 @@ sigma:
     domain: [-1, 1]
     sigma_noise: 0.1
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -155,7 +305,26 @@ sigma:
     sigma_noise: 0.2
 
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -172,7 +341,26 @@ sigma:
     domain: [-1, 1]
     sigma_noise: 0.3
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -190,7 +378,26 @@ sigma:
     domain: [-1, 1]
     sigma_noise: 0.4
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -208,7 +415,26 @@ sigma:
     domain: [-1, 1]
     sigma_noise: 0.5
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -228,7 +454,26 @@ learning_rate:
     domain: [-1, 1]
     sigma_noise: 0.01
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.001
@@ -246,7 +491,26 @@ learning_rate:
     domain: [-1, 1]
     sigma_noise: 0.01
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.002
@@ -263,7 +527,26 @@ learning_rate:
     domain: [-1, 1]
     sigma_noise: 0.01
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.005
@@ -279,7 +562,26 @@ learning_rate:
     domain: [-1, 1]
     sigma_noise: 0.01
 
-    bnn_parameters:
+    bnn:
+      n_layers: 4
+      layers:    # add n_layers number of layers either gaussian or cauchy
+        1:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        2:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+        3:
+          type: gaussian
+          weight: 0.01
+          bias: 0.01
+        4:
+          type: cauchy
+          weight: 0.01
+          bias: 0.01
+
 
     training_parameters:
       learning_rate: 0.01

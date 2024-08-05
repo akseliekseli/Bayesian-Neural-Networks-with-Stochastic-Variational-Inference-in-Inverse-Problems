@@ -47,34 +47,34 @@ def problem_system(grid: np.array, params)-> np.array:
 
 class BNN(PyroModule):
 
-    def __init__(self, h1, h2):
+    def __init__(self, n_in, n_out, n_layers, layers):
         super().__init__()
-        self.fc2 = PyroModule[nn.Linear](h1, h2)
-        self.fc2.weight = PyroSample(dist.Normal(0.,
-                                                torch.tensor(0.01)).expand([h2, h1]).to_event(2))
-        self.fc2.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.01)).expand([h2]).to_event(1))
-        
-        #self.fc1 = nn.Linear(h1, h2)
 
-        self.fc1 = PyroModule[nn.Linear](h1, h2)
-        self.fc1.weight = PyroSample(dist.Cauchy(0.,
-                                                torch.tensor(0.01)).expand([h2, h2]).to_event(2))
-        self.fc1.bias = PyroSample(dist.Cauchy(0.,
-                                               torch.tensor(0.01)).expand([h2]).to_event(1))
-        
-        self.fc4 = PyroModule[nn.Linear](h1, h2)
-        self.fc4.weight = PyroSample(dist.Normal(0.,
-                                                torch.tensor(0.01)).expand([h2, h2]).to_event(2))
-        self.fc4.bias = PyroSample(dist.Normal(0.,
-                                               torch.tensor(0.01)).expand([h2]).to_event(1))
-           
-        self.fc3 = PyroModule[nn.Linear](h1, h2)
-        self.fc3.weight = PyroSample(dist.Cauchy(0.,
-                                                torch.tensor(0.01)).expand([h2, h2]).to_event(2))
-        self.fc3.bias = PyroSample(dist.Cauchy(0.,
-                                               torch.tensor(0.01)).expand([h2]).to_event(1))
-           
+        self.n_layers = n_layers
+
+        self.layers = PyroModule[torch.nn.ModuleList]([
+                                PyroModule[nn.Linear](n_in, n_out)
+        for j in range(n_layers)
+        ])  
+
+        for ii, layer in enumerate(layers):
+
+            if layers[layer]['type'] == 'cauchy':
+                self.layers[ii].weight = PyroSample(dist.Cauchy(0.,
+                                                    torch.tensor(layers[layer]['weight'])).expand([n_out, n_out]).to_event(2))
+                
+                self.layers[ii].bias = PyroSample(dist.Cauchy(0.,
+                                                torch.tensor(layers[layer]['bias'])).expand([n_out]).to_event(1))
+            elif layers[layer]['type'] == 'gaussian':
+                self.layers[ii].weight = PyroSample(dist.Normal(0.,
+                                                    torch.tensor(layers[layer]['weight'])).expand([n_out, n_out]).to_event(2))
+                
+                self.layers[ii].bias = PyroSample(dist.Normal(0.,
+                                                torch.tensor(layers[layer]['bias'])).expand([n_out]).to_event(1))
+
+            else:
+                print('Invalid layer!')
+
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
@@ -82,10 +82,10 @@ class BNN(PyroModule):
         
         x = x#.reshape(-1, 1)
 
-        mu = self.tanh(self.fc1(x))
-        mu = self.relu(self.fc2(mu))
-        mu = self.relu(self.fc3(mu))
-        mu = self.relu(self.fc4(mu))
+        mu = self.relu(self.layers[0](x))
+        for ii in range(1, self.n_layers):
+            mu = self.relu(self.layers[ii](mu))
+
         
         y_hat = torch.matmul(A, mu)
         
@@ -134,7 +134,7 @@ def training_bnn_gpu(config, t, A, y_data):
     pyro.set_rng_seed(config['training_parameters']['random_seed'])
 
     # Define Pyro BNN object and training parameters
-    bnn_model = BNN(h1=n_y, h2=n_x)
+    bnn_model = BNN(n_in=n_y, n_out=n_x, n_layers=config['bnn']['n_layers'])
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],
                 "betas": (0.9, 0.999)}
@@ -199,7 +199,10 @@ def training_bnn_cpu(config, t, A, y_data):
     A = torch.from_numpy(A).float()
 
     # Define Pyro BNN object and training parameters
-    bnn_model = BNN(h1=n_y, h2=n_x)
+    bnn_model = BNN(n_in=n_y,
+                    n_out=n_x,
+                    n_layers=config['bnn']['n_layers'],
+                    layers=config['bnn']['layers'])
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],
                 "betas": (0.9, 0.999)}
