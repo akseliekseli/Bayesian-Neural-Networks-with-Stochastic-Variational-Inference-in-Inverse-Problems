@@ -33,7 +33,7 @@ def problem_system(grid: np.array, params)-> np.array:
         if point <= -0.6:
             output[idx] = params[0]
         elif point <= 0.0:
-            output[idx] = params[1]+ 0.2*np.sin(1.7*np.pi*point*2)
+            output[idx] = params[1]*np.sin(0.8*np.pi*point*2)
         elif point <= 0.4:
             output[idx] = params[2]
         elif point <= 0.6:
@@ -83,14 +83,14 @@ class BNN(PyroModule):
         x = x#.reshape(-1, 1)
 
         mu = self.relu(self.layers[0](x))
-        for ii in range(1, self.n_layers):
-            mu = self.relu(self.layers[ii](mu))
-
+        for ii in range(1, self.n_layers-1):
+            mu = self.tanh(self.layers[ii](mu))
+        mu = self.layers[-1](mu)
         
         y_hat = torch.matmul(A, mu)
         
         sigma = pyro.sample("sigma", dist.Uniform(0.,
-                                                torch.tensor(0.01)))
+                                                torch.tensor(0.1)))
         with pyro.plate("data", n_y):
             obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=y)
         
@@ -113,15 +113,15 @@ def generate_the_problem(n_x: int,
     #A[-1, -1] = 0
 
     # Parameters used for the problem
-    problem_params = [0, 0.8, 0., 1.0, 0]
+    problem_params = [0, 0.7, 0., 1.0, 0]
 
     # Generate grid points
     x = np.linspace(domain[0], domain[1] - h, n_x)
     # Construct the true function
     true = problem_system(x, problem_params)
     temp = A@true
-    ind = temp > 0
-    temp *= ind
+    #ind = temp > 0
+    #temp *= ind
 
     # Create y_data with noise
     y_data = temp + np.random.normal(0, sigma_noise, true.shape)
@@ -159,36 +159,6 @@ def training_bnn_gpu(config, t, A, y_data):
     return x_preds_cpu
 
 
-def generate_the_problem(n_x: int,
-                         n_y: int,
-                         domain: list,
-                         sigma_noise: float):
-    # Generate the grid
-    t = np.linspace(domain[0],domain[1], n_y)
-    t = np.round(t, 3)
-    h = domain[1] / n_y
-    # Create the convolution matrix A
-    model = deconvolution(int(np.round(n_x/2)), int(n_x/16), 'reflect')
-    A = model.linear_operator(n_x)
-    #A = A[1::2, :]
-    #A[0,0] = 0
-    #A[-1, -1] = 0
-
-    # Parameters used for the problem
-    problem_params = [0, 0.8, 0., 1.0, 0]
-
-    # Generate grid points
-    x = np.linspace(domain[0], domain[1] - h, n_x)
-    # Construct the true function
-    true = problem_system(x, problem_params)
-    temp = A@true
-    ind = temp > 0
-    temp *= ind
-
-    # Create y_data with noise
-    y_data = temp + np.random.normal(0, sigma_noise, true.shape)
-
-    return t, x, A, true, y_data
 
 def training_bnn_cpu(config, t, A, y_data):
     # Set Pyro random seed
@@ -242,7 +212,7 @@ def plot_results(config, t, x, true, y_data, x_preds):
     # Plot the quantile range as a shaded area
     plt.fill_between(x, lower_quantile, upper_quantile, color=line.get_color(), alpha=0.5, label='90% quantile range')
     #plt.plot(t, A@x_solution.numpy(), label='A @ solution')
-    plt.axis([domain[0], domain[1], -0.1, 1.5])
+    plt.axis([domain[0], domain[1], -1.0, 1.7])
     plt.xlabel('t')
     plt.ylabel('x')
 
@@ -277,6 +247,8 @@ if __name__ == '__main__':
     n_y = config['n_y']
     domain = config['domain']
     sigma_noise = config['sigma_noise']
+
+    np.random.seed(config['training_parameters']['random_seed'])
     
     t, x, A, true, y_data = generate_the_problem(n_x, n_y, domain, sigma_noise)
 

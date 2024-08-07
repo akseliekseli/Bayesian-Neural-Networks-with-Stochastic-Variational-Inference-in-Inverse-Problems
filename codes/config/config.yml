@@ -14,15 +14,15 @@ misc:
       layers:    # add n_layers number of layers either gaussian or cauchy
         1:
           type: gaussian
-          weight: 0.01
-          bias: 0.01
+          weight: 0.1
+          bias: 0.1
         2:
           type: cauchy
           weight: 0.01
           bias: 0.01
         3:
           type: gaussian
-          weight: 0.01
+          weight: 0.1
           bias: 0.01
         4:
           type: cauchy
@@ -30,7 +30,7 @@ misc:
           bias: 0.01
 
     training_parameters:
-      learning_rate: 0.002
+      learning_rate: 0.0005
       svi_num_iterations: 8000
       random_seed: 42
 
