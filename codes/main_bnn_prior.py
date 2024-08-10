@@ -1,5 +1,6 @@
 import pickle
 import argparse
+import yaml
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,15 +8,15 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
-import yaml
+from scipy.interpolate import CubicSpline
+
 
 import pyro
 import pyro.distributions as dist
 from pyro.nn import PyroModule, PyroSample
 from pyro.infer import SVI, Trace_ELBO
-from pyro.infer.autoguide import AutoDiagonalNormal, AutoNormal
+from pyro.infer.autoguide import AutoDiagonalNormal
 from pyro.optim import Adam
-
 from tqdm.auto import trange
 
 from models import deconvolution
@@ -25,15 +26,14 @@ from models import deconvolution
 #plt.rcParams["font.family"] = "Deja Vu"
 plt.rcParams['font.size'] = 32
 
-
-def problem_system(grid: np.array, params)-> np.array:
-
+def problem_system_combined(grid: np.array)-> np.array:
+    params = [0, 0.7, 0., 1.0, 0]
     output = np.zeros(grid.shape)
     for idx, point in enumerate(grid):
         if point <= -0.6:
             output[idx] = params[0]
         elif point <= 0.0:
-            output[idx] = params[1]*np.sin(0.8*np.pi*point*2)
+            output[idx] = params[1]+ 0.2*np.sin(1.7*np.pi*point*2)
         elif point <= 0.4:
             output[idx] = params[2]
         elif point <= 0.6:
@@ -44,63 +44,114 @@ def problem_system(grid: np.array, params)-> np.array:
     
     return output
 
+def problem_system_discrete(grid: np.array)-> np.array:
+
+    
+    params = [0., 0.8, 0., -0.7, 0.0, 0.4, 0.]
+
+    output = np.zeros(grid.shape)
+    for idx, point in enumerate(grid):
+        if point <= -0.6:
+            output[idx] = params[0]
+        elif point <= -0.5:
+            output[idx] = params[1]
+        elif point <= 0.0:
+            output[idx] = params[2]
+        elif point <= 0.2:
+            output[idx] = params[3]
+        elif point <= 0.5:
+            output[idx] = params[4]
+        elif point <= 0.6:
+            output[idx] = params[5]
+        else:
+            output[idx] = params[6]
+    
+    return output
+
+
+def problem_system_continuous(grid: np.array)-> np.array:
+
+    # Define boundary and internal points
+    x = np.array([-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.3, -0.1, 0.0, 0.2, 0.5, 0.6, 1])
+    y = np.array([0., 0., -0.2, 0.0, 0., 0.1, 0.2,  0.1, 0.4, 0.8, 0.1, 0.0, 0.])
+
+    # Create a cubic spline interpolation of the points
+    cs = CubicSpline(x, y)
+    output = cs(grid)
+    
+    return output
+
+
 
 class BNN(PyroModule):
 
-    def __init__(self, n_in, n_out, n_layers, layers):
+    def __init__(self, n_in, n_out, layers):
         super().__init__()
-
-        self.n_layers = n_layers
-
+        self.n_layers = len(layers)
         self.layers = PyroModule[torch.nn.ModuleList]([
                                 PyroModule[nn.Linear](n_in, n_out)
-        for j in range(n_layers)
+        for j in range(self.n_layers)
         ])  
 
+        self.activations = []
         for ii, layer in enumerate(layers):
-
             if layers[layer]['type'] == 'cauchy':
                 self.layers[ii].weight = PyroSample(dist.Cauchy(0.,
                                                     torch.tensor(layers[layer]['weight'])).expand([n_out, n_out]).to_event(2))
-                
                 self.layers[ii].bias = PyroSample(dist.Cauchy(0.,
                                                 torch.tensor(layers[layer]['bias'])).expand([n_out]).to_event(1))
             elif layers[layer]['type'] == 'gaussian':
                 self.layers[ii].weight = PyroSample(dist.Normal(0.,
-                                                    torch.tensor(layers[layer]['weight'])).expand([n_out, n_out]).to_event(2))
-                
+                                                    torch.tensor(layers[layer]['weight'])).expand([n_out, n_out]).to_event(2))    
                 self.layers[ii].bias = PyroSample(dist.Normal(0.,
                                                 torch.tensor(layers[layer]['bias'])).expand([n_out]).to_event(1))
-
             else:
                 print('Invalid layer!')
+            
+            self.activations.append(layers[layer]['activation'])
 
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
     def forward(self, x, A, y=None):
-        
         x = x#.reshape(-1, 1)
+        
+        if self.activations[0] == 'tanh':
+            mu = self.tanh(self.layers[0](x))
+        elif self.activations[0] == 'relu':
+            mu = self.relu(self.layers[0](x))
+        else:
+            mu = self.layers[0](x)
 
-        mu = self.relu(self.layers[0](x))
         for ii in range(1, self.n_layers-1):
-            mu = self.tanh(self.layers[ii](mu))
-        mu = self.layers[-1](mu)
-        
+            if self.activations[ii] == 'tanh':
+                mu = self.tanh(self.layers[ii](mu))
+            elif self.activations[ii] == 'relu':
+                mu = self.relu(self.layers[ii](mu))
+            else:
+                mu = self.layers[ii](mu)
+
+
+        if self.activations[-1] == 'tanh':
+                mu = self.tanh(self.layers[ii](mu))
+        elif self.activations[-1] == 'relu':
+            mu = self.relu(self.layers[-1](mu))
+        else:
+            mu = self.layers[-1](mu)
+    
         y_hat = torch.matmul(A, mu)
-        
         sigma = pyro.sample("sigma", dist.Uniform(0.,
-                                                torch.tensor(0.1)))
+                                                torch.tensor(0.01)))
         with pyro.plate("data", n_y):
             obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=y)
-        
         return mu
     
 
-def generate_the_problem(n_x: int,
-                         n_y: int,
-                         domain: list,
-                         sigma_noise: float):
+def generate_the_problem(problem_type: str,
+                        n_x: int,
+                        n_y: int,
+                        domain: list,
+                        sigma_noise: float):
     # Generate the grid
     t = np.linspace(domain[0],domain[1], n_y)
     t = np.round(t, 3)
@@ -112,13 +163,14 @@ def generate_the_problem(n_x: int,
     #A[0,0] = 0
     #A[-1, -1] = 0
 
-    # Parameters used for the problem
-    problem_params = [0, 0.7, 0., 1.0, 0]
 
     # Generate grid points
     x = np.linspace(domain[0], domain[1] - h, n_x)
     # Construct the true function
-    true = problem_system(x, problem_params)
+    if problem_type == 'discrete':
+        true = problem_system_discrete(x)
+    if problem_type == 'continuous':
+        true = problem_system_continuous(x)
     temp = A@true
     #ind = temp > 0
     #temp *= ind
@@ -134,7 +186,9 @@ def training_bnn_gpu(config, t, A, y_data):
     pyro.set_rng_seed(config['training_parameters']['random_seed'])
 
     # Define Pyro BNN object and training parameters
-    bnn_model = BNN(n_in=n_y, n_out=n_x, n_layers=config['bnn']['n_layers'])
+    bnn_model = BNN(n_in=n_y,
+                    n_out=n_x,
+                    layers=config['bnn']['layers'])
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],
                 "betas": (0.9, 0.999)}
@@ -171,7 +225,6 @@ def training_bnn_cpu(config, t, A, y_data):
     # Define Pyro BNN object and training parameters
     bnn_model = BNN(n_in=n_y,
                     n_out=n_x,
-                    n_layers=config['bnn']['n_layers'],
                     layers=config['bnn']['layers'])
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],
@@ -224,7 +277,7 @@ def plot_problem(config, t, x, true, y_data):
     plt.plot(x, true, label='true')
     plt.plot(t, y_data, label='data')
 
-    plt.axis([domain[0], domain[1], -0.5, 1.5])
+    plt.axis([domain[0], domain[1], -1.0, 1.7])
     plt.savefig(f"plots/{config['name']}_problem.png")
 
 
@@ -232,10 +285,11 @@ def plot_problem(config, t, x, true, y_data):
 if __name__ == '__main__':
     # Parse the config argument
     parser = argparse.ArgumentParser(description="1D-deconvolution solving with BNN prior")
-    parser.add_argument('--type', type=str, required=True, help='Type of config')
-    parser.add_argument('--config', type=str, required=True, help='Config to use (use config file)')
+    parser.add_argument('--problem_type', type=str, required=True, help='continuous or discrete')
+    parser.add_argument('--experiment_type', type=str, required=True, help='sigma')
+    parser.add_argument('--config', type=str, required=True, help='spesific config')
     args = parser.parse_args()
-    config = yaml.safe_load(open("codes/config/config.yml"))[args.type][args.config]
+    config = yaml.safe_load(open("codes/config/config.yml"))[args.problem_type][args.experiment_type][args.config]
     
     # Define if trained on cpu or gpu
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -247,10 +301,15 @@ if __name__ == '__main__':
     n_y = config['n_y']
     domain = config['domain']
     sigma_noise = config['sigma_noise']
+    problem_type = config['problem']
 
     np.random.seed(config['training_parameters']['random_seed'])
     
-    t, x, A, true, y_data = generate_the_problem(n_x, n_y, domain, sigma_noise)
+    t, x, A, true, y_data = generate_the_problem(problem_type,
+                                                n_x,
+                                                n_y,
+                                                domain,
+                                                sigma_noise)
 
     
     # Convert data to PyTorch tensors

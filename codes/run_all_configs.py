@@ -12,10 +12,11 @@ args = parser.parse_args()
 conf_family = args.conf_family
 
 if conf_family == 'all':
-    for conf_type in config:
-        for conf in config[conf_type]:
-            print(f'RUNNING CONFIG: {conf}\n')
-            os.system(f"python3 codes/main_bnn_prior.py --type {conf_type} --config {conf}")
+    for problem_type in config:
+        for exp_type in config[problem_type]:
+            for conf in config[problem_type][exp_type]:
+                print(f'RUNNING CONFIG: {conf}\n')
+                os.system(f"python3 codes/main_bnn_prior.py --problem_type {problem_type} --experiment_type {exp_type} --config {conf}")
 else:
     for conf in config[conf_family]:
         print(f'RUNNING CONFIG: {conf}\n')

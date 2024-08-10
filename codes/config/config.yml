@@ -1,589 +1,237 @@
-misc:
-
+initial:
   initial:
-
-    name: initial
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.01
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.1
-          bias: 0.1
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.1
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-    training_parameters:
-      learning_rate: 0.0005
-      svi_num_iterations: 8000
-      random_seed: 42
-
-
-  large_scale:
-
-    name: large_scale
-
-    n_x: 50
-    n_y: 50
-    domain: [-1, 1]
-    sigma_noise: 0.01
-
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 1000
-      random_seed: 42
-
-
-sigma:
-
-  sigma_002:
-
-    name: sigma_002
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.02
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-      
-
-  sigma_003:
-
-    name: sigma_003
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.03
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-
-  sigma_004:
-
-    name: sigma_004
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.04
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-      
-
-  sigma_005:
-
-    name: sigma_005
-
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.05
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-
-
-  sigma_006:
-
-    name: sigma_006
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.06
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-
-  sigma_01:
-
-    name: sigma_01
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.1
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-
-
-  sigma_02:
-
-    name: sigma_02
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.2
-
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-      
-  sigma_03:
-
-    name: sigma_03
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.3
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-
-
-  sigma_04:
-
-    name: sigma_04
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.4
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-
-
-  sigma_05:
-
-    name: sigma_05
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.5
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-
-
-learning_rate:
-
-  lr_0001:
-
-    name: lr_0001
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.01
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.001
-      svi_num_iterations: 8000
-      random_seed: 42
-
-      
-
-  lr_0002:
-
-    name: lr_0002
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.01
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.002
-      svi_num_iterations: 8000
-      random_seed: 42
-
-
-  lr_0005:
-
-    name: lr_0005
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.01
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.005
-      svi_num_iterations: 8000
-      random_seed: 42
-
-  lr_001:
-
-    name: lr_001
-
-    n_x: 100
-    n_y: 100
-    domain: [-1, 1]
-    sigma_noise: 0.01
-
-    bnn:
-      n_layers: 4
-      layers:    # add n_layers number of layers either gaussian or cauchy
-        1:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        2:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-        3:
-          type: gaussian
-          weight: 0.01
-          bias: 0.01
-        4:
-          type: cauchy
-          weight: 0.01
-          bias: 0.01
-
-
-    training_parameters:
-      learning_rate: 0.01
-      svi_num_iterations: 8000
-      random_seed: 42
+    continuous_initial:
+      name: continuous_initial
+      problem: continuous
+      n_x: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.01
+      bnn:
+        layers:    # add n_layers number of layers either gaussian or cauchy
+          1:
+            type: gaussian
+            weight: 0.5
+            bias: 0.5
+            activation: relu
+          2:
+            type: gaussian
+            weight: 0.01
+            bias: 0.1
+            activation: relu
+          3:
+            type: gaussian
+            weight: 0.5
+            bias: 0.01
+            activation: tanh
+      training_parameters:
+        learning_rate: 0.01
+        svi_num_iterations: 5000
+        random_seed: 42
+
+    discrete_initial:
+      name: discrete_initial
+      problem: discrete
+      n_x: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.01
+      bnn:
+        layers:    # add n_layers number of layers either gaussian or cauchy
+          1:
+            type: gaussian
+            weight: 0.5
+            bias: 1.5
+            activation: relu
+          2:
+            type: cauchy
+            weight: 0.5
+            bias: 1.5
+            activation: relu
+          3:
+            type: cauchy
+            weight: 0.01
+            bias: 0.01
+            activation: 
+      training_parameters:
+        learning_rate: 0.001
+        svi_num_iterations: 5000
+        random_seed: 42
+
+continuous:
+  sigma:
+    sigma_002:
+      name: continuous_sigma_002
+      problem: continuous
+      n_x: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.02
+      bnn:
+        layers:    # same layers as the initial continuous
+          1:
+            type: gaussian
+            weight: 0.5
+            bias: 0.5
+            activation: relu
+          2:
+            type: gaussian
+            weight: 0.01
+            bias: 0.1
+            activation: relu
+          3:
+            type: gaussian
+            weight: 0.5
+            bias: 0.01
+            activation: tanh
+      training_parameters:
+        learning_rate: 0.01
+        svi_num_iterations: 5000
+        random_seed: 42
+
+    sigma_005:
+      name: continuous_sigma_005
+      problem: continuous
+      n_x: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.05
+      bnn:
+        layers:    # same layers as the initial continuous
+          1:
+            type: gaussian
+            weight: 0.5
+            bias: 0.5
+            activation: relu
+          2:
+            type: gaussian
+            weight: 0.01
+            bias: 0.1
+            activation: relu
+          3:
+            type: gaussian
+            weight: 0.5
+            bias: 0.01
+            activation: tanh
+      training_parameters:
+        learning_rate: 0.01
+        svi_num_iterations: 5000
+        random_seed: 42
+
+    sigma_01:
+      name: continuous_sigma_01
+      problem: continuous
+      n_x: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.1
+      bnn:
+        layers:    # same layers as the initial continuous
+          1:
+            type: gaussian
+            weight: 0.5
+            bias: 0.5
+            activation: relu
+          2:
+            type: gaussian
+            weight: 0.01
+            bias: 0.1
+            activation: relu
+          3:
+            type: gaussian
+            weight: 0.5
+            bias: 0.01
+            activation: tanh
+      training_parameters:
+        learning_rate: 0.01
+        svi_num_iterations: 5000
+        random_seed: 42
+
+discrete:
+  sigma:
+    sigma_002:
+      name: discrete_sigma_002
+      problem: discrete
+      n_x: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.02
+      bnn:
+        layers:    # same layers as the initial discrete
+          1:
+            type: gaussian
+            weight: 0.5
+            bias: 1.5
+            activation: relu
+          2:
+            type: cauchy
+            weight: 0.5
+            bias: 1.5
+            activation: relu
+          3:
+            type: cauchy
+            weight: 0.01
+            bias: 0.01
+            activation: 
+      training_parameters:
+        learning_rate: 0.001
+        svi_num_iterations: 5000
+        random_seed: 42
+
+    sigma_005:
+      name: discrete_sigma_005
+      problem: discrete
+      n_x: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.05
+      bnn:
+        layers:    # same layers as the initial discrete
+          1:
+            type: gaussian
+            weight: 0.5
+            bias: 1.5
+            activation: relu
+          2:
+            type: cauchy
+            weight: 0.5
+            bias: 1.5
+            activation: relu
+          3:
+            type: cauchy
+            weight: 0.01
+            bias: 0.01
+            activation: 
+      training_parameters:
+        learning_rate: 0.001
+        svi_num_iterations: 5000
+        random_seed: 42
+
+    sigma_01:
+      name: discrete_sigma_01
+      problem: discrete
+      n_x: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.1
+      bnn:
+        layers:    # same layers as the initial discrete
+          1:
+            type: gaussian
+            weight: 0.5
+            bias: 1.5
+            activation: relu
+          2:
+            type: cauchy
+            weight: 0.5
+            bias: 1.5
+            activation: relu
+          3:
+            type: cauchy
+            weight: 0.01
+            bias: 0.01
+            activation: 
+      training_parameters:
+        learning_rate: 0.001
+        svi_num_iterations: 5000
+        random_seed: 42
