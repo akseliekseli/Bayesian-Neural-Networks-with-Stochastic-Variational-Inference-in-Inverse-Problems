@@ -1,6 +1,6 @@
 initial:
   initial:
-    continuous_initial:
+    continuous:
       name: continuous_initial
       problem: continuous
       n_x: 100
@@ -29,7 +29,7 @@ initial:
         svi_num_iterations: 5000
         random_seed: 42
 
-    discrete_initial:
+    discrete:
       name: discrete_initial
       problem: discrete
       n_x: 100
