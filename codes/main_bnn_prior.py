@@ -87,6 +87,7 @@ class BNN(PyroModule):
 
     def __init__(self, n_in, n_out, layers):
         super().__init__()
+        
         self.n_layers = len(layers)
         self.layers = PyroModule[torch.nn.ModuleList]([
                                 PyroModule[nn.Linear](n_in, n_out)
@@ -95,16 +96,27 @@ class BNN(PyroModule):
 
         self.activations = []
         for ii, layer in enumerate(layers):
+
+            # Scaling the weights, for gaussian n^(-1/2) and for cauchy n^-1
+            if ii == self.n_layers-1:
+                if layers[layer]['type'] == 'gaussian':
+                    weight = layers[layer]['weight']*float(1/np.sqrt(n_out))
+                else:
+                    weight = layers[layer]['weight']*float(1/n_out)
+            else:
+                weight = layers[layer]['weight']
+            bias = layers[layer]['bias']
+
             if layers[layer]['type'] == 'cauchy':
                 self.layers[ii].weight = PyroSample(dist.Cauchy(0.,
-                                                    torch.tensor(layers[layer]['weight'])).expand([n_out, n_out]).to_event(2))
+                                                torch.tensor(weight)).expand([n_out, n_out]).to_event(2))
                 self.layers[ii].bias = PyroSample(dist.Cauchy(0.,
-                                                torch.tensor(layers[layer]['bias'])).expand([n_out]).to_event(1))
+                                                torch.tensor(bias)).expand([n_out]).to_event(1))
             elif layers[layer]['type'] == 'gaussian':
                 self.layers[ii].weight = PyroSample(dist.Normal(0.,
-                                                    torch.tensor(layers[layer]['weight'])).expand([n_out, n_out]).to_event(2))    
+                                                torch.tensor(weight)).expand([n_out, n_out]).to_event(2))    
                 self.layers[ii].bias = PyroSample(dist.Normal(0.,
-                                                torch.tensor(layers[layer]['bias'])).expand([n_out]).to_event(1))
+                                                torch.tensor(bias)).expand([n_out]).to_event(1))
             else:
                 print('Invalid layer!')
             
@@ -113,15 +125,17 @@ class BNN(PyroModule):
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
-    def forward(self, x, A, y=None):
-        x = x#.reshape(-1, 1)
+    def forward(self, t, A, y=None):
+        #t = t.reshape(-1, 1)
+        
         
         if self.activations[0] == 'tanh':
-            mu = self.tanh(self.layers[0](x))
+            mu = self.tanh(self.layers[0](t))
         elif self.activations[0] == 'relu':
-            mu = self.relu(self.layers[0](x))
+            mu = self.relu(self.layers[0](t))
         else:
-            mu = self.layers[0](x)
+            mu = self.layers[0](t)
+            
 
         for ii in range(1, self.n_layers-1):
             if self.activations[ii] == 'tanh':
@@ -131,9 +145,8 @@ class BNN(PyroModule):
             else:
                 mu = self.layers[ii](mu)
 
-
         if self.activations[-1] == 'tanh':
-                mu = self.tanh(self.layers[ii](mu))
+            mu = self.tanh(self.layers[-1](mu))
         elif self.activations[-1] == 'relu':
             mu = self.relu(self.layers[-1](mu))
         else:
@@ -145,27 +158,27 @@ class BNN(PyroModule):
         with pyro.plate("data", n_y):
             obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=y)
         return mu
-    
+
 
 def generate_the_problem(problem_type: str,
-                        n_x: int,
+                        n_t: int,
                         n_y: int,
                         domain: list,
                         sigma_noise: float):
     # Generate the grid
-    t = np.linspace(domain[0],domain[1], n_y)
+    t = np.linspace(domain[0],domain[1], n_t)
     t = np.round(t, 3)
-    h = domain[1] / n_y
+    h = domain[1] / n_t
     # Create the convolution matrix A
-    model = deconvolution(int(np.round(n_x/2)), int(n_x/16), 'reflect')
-    A = model.linear_operator(n_x)
+    model = deconvolution(int(np.round(n_y/2)), int(n_y/16), 'reflect')
+    A = model.linear_operator(n_y)
     #A = A[1::2, :]
     #A[0,0] = 0
     #A[-1, -1] = 0
 
 
     # Generate grid points
-    x = np.linspace(domain[0], domain[1] - h, n_x)
+    x = np.linspace(domain[0], domain[1] - h, n_y)
     # Construct the true function
     if problem_type == 'discrete':
         true = problem_system_discrete(x)
@@ -187,7 +200,7 @@ def training_bnn_gpu(config, t, A, y_data):
 
     # Define Pyro BNN object and training parameters
     bnn_model = BNN(n_in=n_y,
-                    n_out=n_x,
+                    n_out=n_t,
                     layers=config['bnn']['layers'])
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],
@@ -213,6 +226,15 @@ def training_bnn_gpu(config, t, A, y_data):
     return x_preds_cpu
 
 
+def generate_bnn_realization_plot(bnn, t, A):
+    # Generate prior realizations, A not used
+    realizations = np.empty((len(t), 2))
+    for ii in range(0, 2):
+        realizations[:,ii] = bnn.forward(t, A)
+    
+    plt.plot(t, realizations)
+    plt.savefig('realization.png')
+
 
 def training_bnn_cpu(config, t, A, y_data):
     # Set Pyro random seed
@@ -224,7 +246,7 @@ def training_bnn_cpu(config, t, A, y_data):
 
     # Define Pyro BNN object and training parameters
     bnn_model = BNN(n_in=n_y,
-                    n_out=n_x,
+                    n_out=n_t,
                     layers=config['bnn']['layers'])
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],
@@ -233,7 +255,7 @@ def training_bnn_cpu(config, t, A, y_data):
     svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO())
     num_iterations = config['training_parameters']['svi_num_iterations']
     progress_bar = trange(num_iterations)
-
+    generate_bnn_realization_plot(bnn_model, t, A)
     for j in progress_bar:
         loss = svi.step(t, A, y_data)
         progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(t)))
@@ -297,7 +319,7 @@ if __name__ == '__main__':
     torch.set_default_device(device)
 
     # Get the initial parameters from the config file
-    n_x = config['n_x']
+    n_t = config['n_t']
     n_y = config['n_y']
     domain = config['domain']
     sigma_noise = config['sigma_noise']
@@ -306,7 +328,7 @@ if __name__ == '__main__':
     np.random.seed(config['training_parameters']['random_seed'])
     
     t, x, A, true, y_data = generate_the_problem(problem_type,
-                                                n_x,
+                                                n_t,
                                                 n_y,
                                                 domain,
                                                 sigma_noise)
@@ -317,7 +339,6 @@ if __name__ == '__main__':
         x_preds = training_bnn_gpu(config, t, A, y_data)
     else:
         x_preds = training_bnn_cpu(config, t, A, y_data)
-    
     
     results = dict({'t': t,
                             'x': x,

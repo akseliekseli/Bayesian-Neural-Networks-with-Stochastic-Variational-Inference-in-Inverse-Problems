@@ -3,7 +3,7 @@ initial:
     continuous:
       name: continuous_initial
       problem: continuous
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
@@ -11,19 +11,19 @@ initial:
         layers:    # add n_layers number of layers either gaussian or cauchy
           1:
             type: gaussian
-            weight: 0.5
-            bias: 0.5
-            activation: relu
+            weight: 0.05
+            bias: 0.05
+            activation: tanh
           2:
             type: gaussian
             weight: 0.01
             bias: 0.1
-            activation: relu
+            activation: tanh
           3:
             type: gaussian
             weight: 0.5
             bias: 0.01
-            activation: tanh
+            activation: 
       training_parameters:
         learning_rate: 0.01
         svi_num_iterations: 5000
@@ -32,7 +32,7 @@ initial:
     discrete:
       name: discrete_initial
       problem: discrete
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
@@ -63,7 +63,7 @@ continuous:
     sigma_002:
       name: continuous_sigma_002
       problem: continuous
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.02
@@ -92,7 +92,7 @@ continuous:
     sigma_005:
       name: continuous_sigma_005
       problem: continuous
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.05
@@ -121,7 +121,7 @@ continuous:
     sigma_01:
       name: continuous_sigma_01
       problem: continuous
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.1
@@ -151,7 +151,7 @@ continuous:
     iterations_1000:
       name: continuous_iterations_1000
       problem: continuous
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
@@ -180,7 +180,7 @@ continuous:
     iterations_2000:
       name: continuous_iterations_2000
       problem: continuous
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
@@ -209,7 +209,7 @@ continuous:
     iterations_5000:
       name: continuous_iterations_5000
       problem: continuous
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
@@ -238,7 +238,7 @@ continuous:
     iterations_10000:
       name: continuous_iterations_10000
       problem: continuous
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
@@ -269,7 +269,7 @@ discrete:
     sigma_002:
       name: discrete_sigma_002
       problem: discrete
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.02
@@ -298,7 +298,7 @@ discrete:
     sigma_005:
       name: discrete_sigma_005
       problem: discrete
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.05
@@ -327,7 +327,7 @@ discrete:
     sigma_01:
       name: discrete_sigma_01
       problem: discrete
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.1
@@ -357,7 +357,7 @@ discrete:
     iterations_1000:
       name: discrete_iterations_1000
       problem: discrete
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
@@ -386,7 +386,7 @@ discrete:
     iterations_2000:
       name: discrete_iterations_2000
       problem: discrete
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
@@ -415,7 +415,7 @@ discrete:
     iterations_5000:
       name: discrete_iterations_5000
       problem: discrete
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
@@ -444,7 +444,7 @@ discrete:
     iterations_10000:
       name: discrete_iterations_10000
       problem: discrete
-      n_x: 100
+      n_t: 100
       n_y: 100
       domain: [-1, 1]
       sigma_noise: 0.01
