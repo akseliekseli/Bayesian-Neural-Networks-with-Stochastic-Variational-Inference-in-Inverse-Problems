@@ -152,6 +152,9 @@ class BNN(PyroModule):
         else:
             mu = self.layers[-1](mu)
     
+        print(self.layers[0].weight.T) 
+
+
         y_hat = torch.matmul(A, mu)
         sigma = pyro.sample("sigma", dist.Uniform(0.,
                                                 torch.tensor(0.01)))
