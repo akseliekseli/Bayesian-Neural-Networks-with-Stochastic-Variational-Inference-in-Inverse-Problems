@@ -130,37 +130,52 @@ class BNN(PyroModule):
         
         
         if self.activations[0] == 'tanh':
-            mu = self.tanh(self.layers[0](t))
+            x = self.tanh(self.layers[0](t))
         elif self.activations[0] == 'relu':
-            mu = self.relu(self.layers[0](t))
+            x = self.relu(self.layers[0](t))
         else:
-            mu = self.layers[0](t)
+            x = self.layers[0](t)
             
 
         for ii in range(1, self.n_layers-1):
             if self.activations[ii] == 'tanh':
-                mu = self.tanh(self.layers[ii](mu))
+                x = self.tanh(self.layers[ii](x))
             elif self.activations[ii] == 'relu':
-                mu = self.relu(self.layers[ii](mu))
+                x = self.relu(self.layers[ii](x))
             else:
-                mu = self.layers[ii](mu)
+                x = self.layers[ii](x)
 
         if self.activations[-1] == 'tanh':
-            mu = self.tanh(self.layers[-1](mu))
+            x = self.tanh(self.layers[-1](x))
         elif self.activations[-1] == 'relu':
-            mu = self.relu(self.layers[-1](mu))
+            x = self.relu(self.layers[-1](x))
         else:
-            mu = self.layers[-1](mu)
+            x = self.layers[-1](x)
     
-        print(self.layers[0].weight.T) 
-
-
-        y_hat = torch.matmul(A, mu)
+        y_hat = torch.matmul(A, x)
         sigma = pyro.sample("sigma", dist.Uniform(0.,
                                                 torch.tensor(0.01)))
         with pyro.plate("data", n_y):
             obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=y)
-        return mu
+        return x
+
+
+def prior(t):
+    t = t.detach().numpy()
+    weights1 = np.random.normal(1., 0.1/100, (100,200))
+    bias1 = np.random.normal(1., 0.1, (200,))
+
+    weights2 = np.random.normal(1., 1.0/100, (200,100))
+    bias2 = np.random.normal(1., 1.0, (100,))
+
+    weights3 = np.random.normal(1., 1.0/100000, (100,100))
+    bias3 = np.random.normal(0., 0.01, (100,))
+
+    x = np.tanh(weights1.T @ t + bias1)
+    x =  np.tanh(weights2.T @ x + bias2)
+    x =  weights3.T @ x + bias3
+
+    return x
 
 
 def generate_the_problem(problem_type: str,
@@ -233,7 +248,7 @@ def generate_bnn_realization_plot(bnn, t, A):
     # Generate prior realizations, A not used
     realizations = np.empty((len(t), 2))
     for ii in range(0, 2):
-        realizations[:,ii] = bnn.forward(t, A)
+        realizations[:,ii] = prior(t)
     
     plt.plot(t, realizations)
     plt.savefig('realization.png')
