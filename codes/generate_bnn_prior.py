@@ -101,31 +101,38 @@ class BNN(PyroModule):
 
 
 def prior(t):
-    t = t.detach().numpy()
-    weights1 = np.random.normal(0., 0.05/100/np.sqrt(200), (100,200))
-    bias1 = np.random.normal(10., 0.05, (200,))
+    gaussian = torch.distributions.normal.Normal(loc=torch.tensor([0.0]), scale=torch.tensor([5.0]))
+    weights = gaussian.sample(sample_shape=(100,100))
+    biases = gaussian.sample(
+                sample_shape=t.shape
+            )
+    
+    weights = weights[:,:,0]
 
-    weights2 = np.random.normal(0., 0.01/np.sqrt(100), (200,100))
-    bias2 = np.random.normal(0., 0.1, (100,))
+    x = torch.tanh(torch.matmul(weights,t.view(-1, 1)) + biases)
 
-    weights3 = np.random.normal(1., 0.5, (100,100))
-    bias3 = np.random.normal(0., 0.01, (100,))
+    gaussian = torch.distributions.normal.Normal(loc=torch.tensor([0.0]), scale=torch.tensor([1.0])/np.sqrt(100))
+    weights = gaussian.sample(sample_shape=(100,100))
+    biases = gaussian.sample(
+                sample_shape=t.shape
+            )
+    
+    weights = weights[:,:,0]
 
-    x = np.tanh(weights1.T @ t + bias1)
-    x =  np.tanh(weights2.T @ x + bias2)
-    x =  weights3.T @ x + bias3
-
-    return x
+    x = torch.matmul(weights,x.view(-1, 1)) + biases
+#    x =  np.tanh(x@weights2 + bias2)
+#    x =  x@weights3 + bias3
+    return x.view(-1)
 
 
 
 def generate_bnn_realization_plot(t):
     # Generate prior realizations, A not used
-    realizations = np.empty((len(t), 2))
-    for ii in range(0, 2):
+    realizations = np.empty((len(t), 100))
+    for ii in range(0, 100):
         realizations[:,ii] = prior(t)
     
-    plt.plot(t, realizations)
+    plt.plot(t, realizations[0,:])
     plt.savefig('realization.png')
 
 
@@ -133,7 +140,7 @@ def generate_bnn_realization_plot(t):
 
 if __name__ == '__main__':
     
-    t = torch.linspace(-1, 1, 100)
+    t = torch.linspace(0, 1, 100)
 
     generate_bnn_realization_plot(t)
     

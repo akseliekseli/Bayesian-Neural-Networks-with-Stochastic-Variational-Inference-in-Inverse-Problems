@@ -11,17 +11,17 @@ initial:
         layers:    # add n_layers number of layers either gaussian or cauchy
           1:
             type: gaussian
-            weight: 0.05
-            bias: 0.05
+            weight: 3.0
+            bias: 0.1
             activation: tanh
           2:
             type: gaussian
-            weight: 0.01
+            weight: 2.0
             bias: 0.1
             activation: tanh
           3:
             type: gaussian
-            weight: 0.5
+            weight: 0.05
             bias: 0.01
             activation: 
       training_parameters:

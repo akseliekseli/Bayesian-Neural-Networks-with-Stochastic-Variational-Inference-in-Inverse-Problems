@@ -87,95 +87,110 @@ class BNN(PyroModule):
 
     def __init__(self, n_in, n_out, layers):
         super().__init__()
-        
+
         self.n_layers = len(layers)
         self.layers = PyroModule[torch.nn.ModuleList]([
-                                PyroModule[nn.Linear](n_in, n_out)
-        for j in range(self.n_layers)
-        ])  
+                                PyroModule[nn.Linear](n_in, 40),  # First layer: 40 units
+                                PyroModule[nn.Linear](40, 80),   # Second layer: 80 units
+                                PyroModule[nn.Linear](80, n_out)  # Output layer: n_out units
+                            ])  
 
         self.activations = []
         for ii, layer in enumerate(layers):
 
-            # Scaling the weights, for gaussian n^(-1/2) and for cauchy n^-1
-            if ii == self.n_layers-1:
+            # Scaling the weights, for Gaussian n^(-1/2) and for Cauchy n^-1
+            if ii == self.n_layers - 1:
                 if layers[layer]['type'] == 'gaussian':
-                    weight = layers[layer]['weight']*float(1/np.sqrt(n_out))
+                    weight_scale = float(1 / np.sqrt(n_out))
                 else:
-                    weight = layers[layer]['weight']*float(1/n_out)
+                    weight_scale = float(1 / n_out)
             else:
-                weight = layers[layer]['weight']
+                weight_scale = 1.0
+
+            weight = layers[layer]['weight'] * weight_scale
             bias = layers[layer]['bias']
 
             if layers[layer]['type'] == 'cauchy':
-                self.layers[ii].weight = PyroSample(dist.Cauchy(0.,
-                                                torch.tensor(weight)).expand([n_out, n_out]).to_event(2))
-                self.layers[ii].bias = PyroSample(dist.Cauchy(0.,
-                                                torch.tensor(bias)).expand([n_out]).to_event(1))
+                if ii == 0:  # First layer
+                    base_weight = dist.Cauchy(0., torch.tensor(weight)).sample([40, 1])  # Shape [40, 1]
+                else:
+                    base_weight = dist.Cauchy(0., torch.tensor(weight)).sample([1, self.layers[ii].in_features])
+                    base_weight = base_weight.repeat(self.layers[ii].out_features, 1)
+                
+                self.layers[ii].weight = PyroSample(dist.Delta(base_weight).to_event(2))
+
+                if ii == self.n_layers - 1:  # Special case for the last layer
+                    base_bias = dist.Cauchy(0., torch.tensor(bias)).sample([1, 1])
+                    expanded_bias = base_bias.repeat(1, 100)  # Shape [1, 100]
+                else:
+                    base_bias = dist.Cauchy(0., torch.tensor(bias)).sample([self.layers[ii].out_features, 1])
+                    expanded_bias = base_bias.repeat(1, 100)  # Shape [out_features, 100]
+                
+                self.layers[ii].bias = PyroSample(dist.Delta(expanded_bias).to_event(2))
+                
             elif layers[layer]['type'] == 'gaussian':
-                self.layers[ii].weight = PyroSample(dist.Normal(0.,
-                                                torch.tensor(weight)).expand([n_out, n_out]).to_event(2))    
-                self.layers[ii].bias = PyroSample(dist.Normal(0.,
-                                                torch.tensor(bias)).expand([n_out]).to_event(1))
+                if ii == 0:  # First layer
+                    base_weight = dist.Normal(0., torch.tensor(weight)).sample([40, 1])  # Shape [40, 1]
+                elif ii == self.n_layers-1:
+                    base_weight = dist.Normal(0., torch.tensor(weight)).sample([1, self.layers[ii].in_features])
+                    base_weight = base_weight.repeat(1, 1)
+                else:
+                    base_weight = dist.Normal(0., torch.tensor(weight)).sample([1, self.layers[ii].in_features])
+                    base_weight = base_weight.repeat(self.layers[ii].out_features, 1)
+
+                self.layers[ii].weight = PyroSample(dist.Delta(base_weight).to_event(2))
+
+                if ii == self.n_layers - 1:  # Special case for the last layer
+                    base_bias = dist.Normal(0., torch.tensor(bias)).sample([1, 1])
+                    expanded_bias = base_bias.repeat(100, 1)  # Shape [1, 100]
+                else:
+                    base_bias = dist.Normal(0., torch.tensor(bias)).sample([1, self.layers[ii].out_features])
+                    expanded_bias = base_bias.repeat(100, 1)  # Shape [out_features, 100]
+
+                self.layers[ii].bias = PyroSample(dist.Delta(expanded_bias).to_event(2))
+                
             else:
                 print('Invalid layer!')
-            
+
             self.activations.append(layers[layer]['activation'])
 
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
+
+
+
     def forward(self, t, A, y=None):
-        #t = t.reshape(-1, 1)
-        
-        
-        if self.activations[0] == 'tanh':
-            x = self.tanh(self.layers[0](t))
-        elif self.activations[0] == 'relu':
-            x = self.relu(self.layers[0](t))
-        else:
-            x = self.layers[0](t)
-            
+        t = t.reshape(-1, 1)
 
-        for ii in range(1, self.n_layers-1):
+        for ii in range(self.n_layers):
+            weight = pyro.sample(f"weight_{ii}", self.layers[ii].weight_dist)
+            bias = pyro.sample(f"bias_{ii}", self.layers[ii].bias_dist)
+
             if self.activations[ii] == 'tanh':
-                x = self.tanh(self.layers[ii](x))
+                t = self.tanh(torch.matmul(t, weight.T) + bias)
             elif self.activations[ii] == 'relu':
-                x = self.relu(self.layers[ii](x))
+                t = self.relu(torch.matmul(t, weight.T) + bias)
             else:
-                x = self.layers[ii](x)
+                t = torch.matmul(t, weight.T) + bias
 
-        if self.activations[-1] == 'tanh':
-            x = self.tanh(self.layers[-1](x))
-        elif self.activations[-1] == 'relu':
-            x = self.relu(self.layers[-1](x))
-        else:
-            x = self.layers[-1](x)
-    
-        y_hat = torch.matmul(A, x)
-        sigma = pyro.sample("sigma", dist.Uniform(0.,
-                                                torch.tensor(0.01)))
-        with pyro.plate("data", n_y):
+        y_hat = torch.matmul(A, t)
+
+        sigma = pyro.sample("sigma", dist.Uniform(0., torch.tensor(0.01)))
+        with pyro.plate("data", A.shape[0]):
             obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=y)
-        return x
+
+        return t
 
 
-def prior(t):
-    t = t.detach().numpy()
-    weights1 = np.random.normal(1., 0.1/100, (100,200))
-    bias1 = np.random.normal(1., 0.1, (200,))
-
-    weights2 = np.random.normal(1., 1.0/100, (200,100))
-    bias2 = np.random.normal(1., 1.0, (100,))
-
-    weights3 = np.random.normal(1., 1.0/100000, (100,100))
-    bias3 = np.random.normal(0., 0.01, (100,))
-
-    x = np.tanh(weights1.T @ t + bias1)
-    x =  np.tanh(weights2.T @ x + bias2)
-    x =  weights3.T @ x + bias3
-
-    return x
+def generate_bnn_realization_plot(bnn, t, A):
+    # Generate prior realizations, A not used
+    realizations = np.empty((len(t), 10))
+    for ii in range(0, 10):
+        realizations[:,ii] = bnn.forward(t, A).T
+    
+    plt.plot(realizations)
+    plt.savefig('realization.png')
 
 
 def generate_the_problem(problem_type: str,
@@ -242,16 +257,6 @@ def training_bnn_gpu(config, t, A, y_data):
     x_preds_cpu = preds_gpu['_RETURN'].cpu()
     
     return x_preds_cpu
-
-
-def generate_bnn_realization_plot(bnn, t, A):
-    # Generate prior realizations, A not used
-    realizations = np.empty((len(t), 2))
-    for ii in range(0, 2):
-        realizations[:,ii] = prior(t)
-    
-    plt.plot(t, realizations)
-    plt.savefig('realization.png')
 
 
 def training_bnn_cpu(config, t, A, y_data):
