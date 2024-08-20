@@ -24,7 +24,7 @@ from models import deconvolution
 
 
 #plt.rcParams["font.family"] = "Deja Vu"
-plt.rcParams['font.size'] = 32
+#plt.rcParams['font.size'] = 32
 
 def problem_system_combined(grid: np.array)-> np.array:
     params = [0, 0.7, 0., 1.0, 0]
@@ -88,11 +88,14 @@ class BNN(PyroModule):
     def __init__(self, n_in, n_out, layers):
         super().__init__()
 
+        self.layer_shapes = [128, 256, 128]
+
         self.n_layers = len(layers)
         self.layers = PyroModule[torch.nn.ModuleList]([
-                                PyroModule[nn.Linear](n_in, 40),  # First layer: 40 units
-                                PyroModule[nn.Linear](40, 80),   # Second layer: 80 units
-                                PyroModule[nn.Linear](80, n_out)  # Output layer: n_out units
+                                PyroModule[nn.Linear](n_in, self.layer_shapes[0]),  # First layer: 40 units
+                                PyroModule[nn.Linear](self.layer_shapes[0], self.layer_shapes[1]),   # Second layer: 80 units
+                                PyroModule[nn.Linear](self.layer_shapes[1], self.layer_shapes[2]),   # Second layer: 80 units
+                                PyroModule[nn.Linear](self.layer_shapes[2], 1)  # Output layer: n_out units
                             ])  
 
         self.activations = []
@@ -101,53 +104,45 @@ class BNN(PyroModule):
             # Scaling the weights, for Gaussian n^(-1/2) and for Cauchy n^-1
             if ii == self.n_layers - 1:
                 if layers[layer]['type'] == 'gaussian':
-                    weight_scale = float(1 / np.sqrt(n_out))
+                    weight_scale = float(1 / np.sqrt(self.layers[ii].in_features))
                 else:
-                    weight_scale = float(1 / n_out)
+                    weight_scale = float(1 / self.layers[ii].in_features)
             else:
                 weight_scale = 1.0
 
-            weight = layers[layer]['weight'] * weight_scale
-            bias = layers[layer]['bias']
+            weight = float(np.sqrt(layers[layer]['weight']) * weight_scale)
+            bias = float(np.sqrt(layers[layer]['bias']))
 
             if layers[layer]['type'] == 'cauchy':
                 if ii == 0:  # First layer
-                    base_weight = dist.Cauchy(0., torch.tensor(weight)).sample([40, 1])  # Shape [40, 1]
+                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layer_shapes[0], 1]).to_event(2))
+                elif ii == self.n_layers-1:
+                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
+                    #base_weight = base_weight.repeat(1, 1)
                 else:
-                    base_weight = dist.Cauchy(0., torch.tensor(weight)).sample([1, self.layers[ii].in_features])
-                    base_weight = base_weight.repeat(self.layers[ii].out_features, 1)
-                
-                self.layers[ii].weight = PyroSample(dist.Delta(base_weight).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layers[ii].out_features, self.layers[ii].in_features]).to_event(2))
+                    #base_weight = base_weight.repeat(self.layers[ii].out_features, 1)
 
                 if ii == self.n_layers - 1:  # Special case for the last layer
-                    base_bias = dist.Cauchy(0., torch.tensor(bias)).sample([1, 1])
-                    expanded_bias = base_bias.repeat(1, 100)  # Shape [1, 100]
+                    self.layers[ii].bias = PyroSample(dist.Cauchy(0., torch.tensor(bias)).expand([1, 1]).to_event(2))
                 else:
-                    base_bias = dist.Cauchy(0., torch.tensor(bias)).sample([self.layers[ii].out_features, 1])
-                    expanded_bias = base_bias.repeat(1, 100)  # Shape [out_features, 100]
-                
-                self.layers[ii].bias = PyroSample(dist.Delta(expanded_bias).to_event(2))
+                    self.layers[ii].bias = PyroSample(dist.Cauchy(0., torch.tensor(bias)).expand([1, self.layers[ii].out_features]).to_event(2))
                 
             elif layers[layer]['type'] == 'gaussian':
                 if ii == 0:  # First layer
-                    base_weight = dist.Normal(0., torch.tensor(weight)).sample([40, 1])  # Shape [40, 1]
+                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layer_shapes[0], 1]).to_event(2))
                 elif ii == self.n_layers-1:
-                    base_weight = dist.Normal(0., torch.tensor(weight)).sample([1, self.layers[ii].in_features])
-                    base_weight = base_weight.repeat(1, 1)
+                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
+                    #base_weight = base_weight.repeat(1, 1)
                 else:
-                    base_weight = dist.Normal(0., torch.tensor(weight)).sample([1, self.layers[ii].in_features])
-                    base_weight = base_weight.repeat(self.layers[ii].out_features, 1)
-
-                self.layers[ii].weight = PyroSample(dist.Delta(base_weight).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layers[ii].out_features, self.layers[ii].in_features]).to_event(2))
+                    #base_weight = base_weight.repeat(self.layers[ii].out_features, 1)
 
                 if ii == self.n_layers - 1:  # Special case for the last layer
-                    base_bias = dist.Normal(0., torch.tensor(bias)).sample([1, 1])
-                    expanded_bias = base_bias.repeat(100, 1)  # Shape [1, 100]
+                    self.layers[ii].bias = PyroSample(dist.Normal(0., torch.tensor(bias)).expand([1, 1]).to_event(2))
+                    #pass
                 else:
-                    base_bias = dist.Normal(0., torch.tensor(bias)).sample([1, self.layers[ii].out_features])
-                    expanded_bias = base_bias.repeat(100, 1)  # Shape [out_features, 100]
-
-                self.layers[ii].bias = PyroSample(dist.Delta(expanded_bias).to_event(2))
+                    self.layers[ii].bias = PyroSample(dist.Normal(0., torch.tensor(bias)).expand([1, self.layers[ii].out_features]).to_event(2))
                 
             else:
                 print('Invalid layer!')
@@ -157,30 +152,24 @@ class BNN(PyroModule):
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
-
-
-
     def forward(self, t, A, y=None):
         t = t.reshape(-1, 1)
 
         for ii in range(self.n_layers):
-            weight = pyro.sample(f"weight_{ii}", self.layers[ii].weight_dist)
-            bias = pyro.sample(f"bias_{ii}", self.layers[ii].bias_dist)
-
+            
             if self.activations[ii] == 'tanh':
-                t = self.tanh(torch.matmul(t, weight.T) + bias)
+                t = self.tanh(self.layers[ii](t))
             elif self.activations[ii] == 'relu':
-                t = self.relu(torch.matmul(t, weight.T) + bias)
+                t = self.relu(self.layers[ii](t))
             else:
-                t = torch.matmul(t, weight.T) + bias
-
+                t = self.layers[ii](t)
+        
         y_hat = torch.matmul(A, t)
-
         sigma = pyro.sample("sigma", dist.Uniform(0., torch.tensor(0.01)))
-        with pyro.plate("data", A.shape[0]):
-            obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=y)
+        with pyro.plate("data", y_hat.shape[0]):
+            obs = pyro.sample("obs", dist.Normal(y_hat[:,0], sigma), obs=y)
 
-        return t
+        return t[:,0].T
 
 
 def generate_bnn_realization_plot(bnn, t, A):
@@ -189,7 +178,7 @@ def generate_bnn_realization_plot(bnn, t, A):
     for ii in range(0, 10):
         realizations[:,ii] = bnn.forward(t, A).T
     
-    plt.plot(realizations)
+    plt.plot(t, realizations)
     plt.savefig('realization.png')
 
 
@@ -302,10 +291,11 @@ def calculate_mean_and_quantile(x_preds):
 def plot_results(config, t, x, true, y_data, x_preds):
     x_mean, lower_quantile, upper_quantile = calculate_mean_and_quantile(x_preds)
 
+    print(f'X {x_preds.shape}')
+
     plt.figure()
     plt.plot(x, true, label='true')
     plt.plot(t, y_data, label='data')
-
     line, = plt.plot(t, x_mean, label='inverse solution')
     # Plot the quantile range as a shaded area
     plt.fill_between(x, lower_quantile, upper_quantile, color=line.get_color(), alpha=0.5, label='90% quantile range')
