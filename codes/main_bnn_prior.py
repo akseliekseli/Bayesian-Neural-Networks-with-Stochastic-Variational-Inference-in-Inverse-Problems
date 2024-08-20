@@ -83,6 +83,7 @@ def problem_system_continuous(grid: np.array)-> np.array:
 
 
 
+
 class BNN(PyroModule):
 
     def __init__(self, n_in, n_out, layers):
@@ -104,7 +105,7 @@ class BNN(PyroModule):
             # Scaling the weights, for Gaussian n^(-1/2) and for Cauchy n^-1
             if ii == self.n_layers - 1:
                 if layers[layer]['type'] == 'gaussian':
-                    weight_scale = float(1 / np.sqrt(self.layers[ii].in_features))
+                    weight_scale = float(1 / np.sqrt(self.layers[ii].out_features))
                 else:
                     weight_scale = float(1 / self.layers[ii].in_features)
             else:
@@ -118,13 +119,12 @@ class BNN(PyroModule):
                     self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layer_shapes[0], 1]).to_event(2))
                 elif ii == self.n_layers-1:
                     self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
-                    #base_weight = base_weight.repeat(1, 1)
                 else:
                     self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layers[ii].out_features, self.layers[ii].in_features]).to_event(2))
-                    #base_weight = base_weight.repeat(self.layers[ii].out_features, 1)
 
                 if ii == self.n_layers - 1:  # Special case for the last layer
                     self.layers[ii].bias = PyroSample(dist.Cauchy(0., torch.tensor(bias)).expand([1, 1]).to_event(2))
+                    #pass
                 else:
                     self.layers[ii].bias = PyroSample(dist.Cauchy(0., torch.tensor(bias)).expand([1, self.layers[ii].out_features]).to_event(2))
                 
@@ -133,17 +133,14 @@ class BNN(PyroModule):
                     self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layer_shapes[0], 1]).to_event(2))
                 elif ii == self.n_layers-1:
                     self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
-                    #base_weight = base_weight.repeat(1, 1)
                 else:
                     self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layers[ii].out_features, self.layers[ii].in_features]).to_event(2))
-                    #base_weight = base_weight.repeat(self.layers[ii].out_features, 1)
 
                 if ii == self.n_layers - 1:  # Special case for the last layer
                     self.layers[ii].bias = PyroSample(dist.Normal(0., torch.tensor(bias)).expand([1, 1]).to_event(2))
                     #pass
                 else:
                     self.layers[ii].bias = PyroSample(dist.Normal(0., torch.tensor(bias)).expand([1, self.layers[ii].out_features]).to_event(2))
-                
             else:
                 print('Invalid layer!')
 
@@ -156,28 +153,28 @@ class BNN(PyroModule):
         t = t.reshape(-1, 1)
 
         for ii in range(self.n_layers):
-            
             if self.activations[ii] == 'tanh':
                 t = self.tanh(self.layers[ii](t))
             elif self.activations[ii] == 'relu':
                 t = self.relu(self.layers[ii](t))
             else:
                 t = self.layers[ii](t)
-        
         y_hat = torch.matmul(A, t)
         sigma = pyro.sample("sigma", dist.Uniform(0., torch.tensor(0.01)))
-        with pyro.plate("data", y_hat.shape[0]):
-            obs = pyro.sample("obs", dist.Normal(y_hat[:,0], sigma), obs=y)
+        if y != None:
+            with pyro.plate("data", len(y)):
+                obs = pyro.sample("obs", dist.Normal(y_hat[:,0], sigma), obs=y)
 
-        return t[:,0].T
+        return t.view(-1)
+
+ 
 
 
 def generate_bnn_realization_plot(bnn, t, A):
     # Generate prior realizations, A not used
     realizations = np.empty((len(t), 10))
     for ii in range(0, 10):
-        realizations[:,ii] = bnn.forward(t, A).T
-    
+        realizations[:,ii] = bnn.forward(t, A)
     plt.plot(t, realizations)
     plt.savefig('realization.png')
 

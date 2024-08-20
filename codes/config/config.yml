@@ -12,26 +12,21 @@ initial:
           1:
             type: gaussian
             weight: 2.5
-            bias: 0.1
+            bias: 0.5
             activation: tanh
           2:
             type: gaussian
             weight: 2.5
-            bias: 0.1
+            bias: 0.5
             activation: tanh
           3:
             type: gaussian
-            weight: 0.5
+            weight: 1.5
             bias: 0.1
-            activation: tanh
-          4:
-            type: gaussian
-            weight: 0.05
-            bias: 0.01
             activation: 
       training_parameters:
-        learning_rate: 0.00001
-        svi_num_iterations: 20000
+        learning_rate: 0.001
+        svi_num_iterations: 30000
         random_seed: 42
 
     discrete:
@@ -45,22 +40,22 @@ initial:
         layers:    # add n_layers number of layers either gaussian or cauchy
           1:
             type: cauchy
-            weight: 1.0
-            bias: 0.5
+            weight: 3.0
+            bias: 2.0
             activation: tanh
           2:
             type: cauchy
-            weight: 1.0
-            bias: 0.5
+            weight: 2.0
+            bias: 2.0
             activation: tanh
           3:
             type: cauchy
-            weight: 0.5
-            bias: 0.01
+            weight: 2.0
+            bias: 2.0
             activation: 
       training_parameters:
         learning_rate: 0.001
-        svi_num_iterations: 5000
+        svi_num_iterations: 10000
         random_seed: 42
 
 continuous:
