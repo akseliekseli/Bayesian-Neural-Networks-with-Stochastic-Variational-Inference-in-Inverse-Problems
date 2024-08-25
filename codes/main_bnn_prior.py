@@ -47,7 +47,7 @@ def problem_system_combined(grid: np.array)-> np.array:
 def problem_system_discrete(grid: np.array)-> np.array:
 
     
-    params = [0., 0.8, 0., 0.7, 0.0, 0.8, 0.]
+    params = [0., 0.8, 0., -0.7, 0.0, 0.8, 0.]
 
     output = np.zeros(grid.shape)
     for idx, point in enumerate(grid):
@@ -73,7 +73,7 @@ def problem_system_continuous(grid: np.array)-> np.array:
 
     # Define boundary and internal points
     x = np.array([-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.3, -0.1, 0.0, 0.2, 0.5, 0.6, 1])
-    y = np.array([0., 0., -0.5, 0.0, 0., 0.6, 0.2,  0.1, 0.4, 0.8, 0.1, 0.0, 0.])
+    y = np.array([0, -0.3, 0., 0.0, 0., 0.6, 0.2,  0.1, 0.4, 0.8, 0.1, 0.0, 0.])
 
     # Create a cubic spline interpolation of the points
     cs = CubicSpline(x, y)
@@ -163,7 +163,8 @@ class BNN(PyroModule):
             else:
                 t = self.layers[ii](t)
         y_hat = torch.matmul(A, t)
-        sigma = pyro.sample("sigma", dist.Uniform(0., torch.tensor(0.001)))
+        sigma = pyro.sample("sigma", dist.Uniform(0., torch.tensor(0.01)))
+        
         if y != None:
             with pyro.plate("data", len(y)):
                 obs = pyro.sample("obs", dist.Normal(y_hat[:,0], sigma), obs=y)
@@ -300,7 +301,7 @@ def plot_results(config, t, x, true, y_data, x_preds):
     # Plot the quantile range as a shaded area
     plt.fill_between(x, lower_quantile, upper_quantile, color=line.get_color(), alpha=0.5, label='90% quantile range')
     #plt.plot(t, x_preds[0:3, :].T)
-    #plt.plot(t, A@x_mean.numpy(), label='A @ solution')
+    plt.plot(t, A@x_mean.numpy(), label='A @ solution')
     plt.axis([domain[0], domain[1], -1.0, 1.7])
     plt.xlabel('t')
     plt.ylabel('x')

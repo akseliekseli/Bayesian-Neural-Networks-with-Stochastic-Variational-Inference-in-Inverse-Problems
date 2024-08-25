@@ -11,31 +11,31 @@ initial:
         layers:    # add n_layers number of layers either gaussian or cauchy. Last layer is the output
           1:
             type: gaussian
-            weight: 10.
-            bias: 5.
+            weight: 1.
+            bias: 1.
             activation: tanh
-            layer_size: 100
+            layer_size: 40
           2:
-            type: cauhcy
-            weight: 10.
-            bias: 5.
+            type: gaussian
+            weight: 1.
+            bias: 1.
             activation: tanh
-            layer_size: 200
+            layer_size: 80
           3:
             type: gaussian
-            weight: 10.
-            bias: 5.
+            weight: 1.
+            bias: 1.
             activation: tanh
-            layer_size: 200
+            layer_size: 40
           4:
             type: gaussian
-            weight: 0.05
-            bias: 0.01
+            weight: 1.
+            bias: 1.0
             activation: 
-            layer_size: 150
+            layer_size: 80
       training_parameters:
-        learning_rate: 0.001
-        svi_num_iterations: 40000
+        learning_rate: 0.01
+        svi_num_iterations: 20000
         random_seed: 42
 
     discrete:
@@ -49,25 +49,31 @@ initial:
         layers:    # add n_layers number of layers either gaussian or cauchy
           1:
             type: cauchy
-            weight: 5.0
-            bias: 1.0
+            weight: 1.
+            bias: 0.1
             activation: tanh
-            layer_size: 100
+            layer_size: 40
           2:
             type: cauchy
-            weight: 5.0
-            bias: 1.0
+            weight: 1.
+            bias: 0.1
             activation: tanh
-            layer_size: 200
+            layer_size: 80
           3:
             type: cauchy
-            weight: 0.05
-            bias: 0.01
+            weight: 1.
+            bias: 0.1
+            activation: tanh
+            layer_size: 40
+          4:
+            type: cauchy
+            weight: 0.1
+            bias: 0.1
             activation: 
-            layer_size: 120
+            layer_size: 80
       training_parameters:
-        learning_rate: 0.001
-        svi_num_iterations: 40000
+        learning_rate: 0.01
+        svi_num_iterations: 20000
         random_seed: 42
 
 continuous:
