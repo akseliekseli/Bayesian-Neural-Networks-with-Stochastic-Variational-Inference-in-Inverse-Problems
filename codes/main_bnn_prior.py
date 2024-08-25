@@ -47,7 +47,7 @@ def problem_system_combined(grid: np.array)-> np.array:
 def problem_system_discrete(grid: np.array)-> np.array:
 
     
-    params = [0., 0.8, 0., -0.7, 0.0, 0.4, 0.]
+    params = [0., 0.8, 0., 0.7, 0.0, 0.8, 0.]
 
     output = np.zeros(grid.shape)
     for idx, point in enumerate(grid):
@@ -73,7 +73,7 @@ def problem_system_continuous(grid: np.array)-> np.array:
 
     # Define boundary and internal points
     x = np.array([-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.3, -0.1, 0.0, 0.2, 0.5, 0.6, 1])
-    y = np.array([0., 0., -0.2, 0.0, 0., 0.1, 0.2,  0.1, 0.4, 0.8, 0.1, 0.0, 0.])
+    y = np.array([0., 0., -0.5, 0.0, 0., 0.6, 0.2,  0.1, 0.4, 0.8, 0.1, 0.0, 0.])
 
     # Create a cubic spline interpolation of the points
     cs = CubicSpline(x, y)
@@ -89,34 +89,37 @@ class BNN(PyroModule):
     def __init__(self, n_in, n_out, layers):
         super().__init__()
 
-        self.layer_shapes = [128, 256, 128]
-
         self.n_layers = len(layers)
-        self.layers = PyroModule[torch.nn.ModuleList]([
-                                PyroModule[nn.Linear](n_in, self.layer_shapes[0]),  # First layer: 40 units
-                                PyroModule[nn.Linear](self.layer_shapes[0], self.layer_shapes[1]),   # Second layer: 80 units
-                                PyroModule[nn.Linear](self.layer_shapes[1], self.layer_shapes[2]),   # Second layer: 80 units
-                                PyroModule[nn.Linear](self.layer_shapes[2], 1)  # Output layer: n_out units
-                            ])  
 
+        self.layers = PyroModule[torch.nn.ModuleList]([])
         self.activations = []
         for ii, layer in enumerate(layers):
+            # Creating and appending torch layer
+            if ii == 0:
+                self.layers.append(PyroModule[nn.Linear](n_in, layers[layer]['layer_size']))
+            elif ii == self.n_layers-1:
+                input = self.layers[-1].out_features
+                self.layers.append(PyroModule[nn.Linear](input, n_out))
+            else:
+                input = self.layers[-1].out_features
+                self.layers.append(PyroModule[nn.Linear](input, layers[layer]['layer_size']))
+
 
             # Scaling the weights, for Gaussian n^(-1/2) and for Cauchy n^-1
-            if ii == self.n_layers - 1:
+            if ii != 0:
                 if layers[layer]['type'] == 'gaussian':
-                    weight_scale = float(1 / np.sqrt(self.layers[ii].out_features))
-                else:
+                    weight_scale = float(1 / np.sqrt(self.layers[ii].in_features))
+                elif layers[layer]['type'] == 'cauchy':
                     weight_scale = float(1 / self.layers[ii].in_features)
             else:
                 weight_scale = 1.0
 
-            weight = float(np.sqrt(layers[layer]['weight']) * weight_scale)
-            bias = float(np.sqrt(layers[layer]['bias']))
+            weight = float(layers[layer]['weight'] * weight_scale)
+            bias = float(layers[layer]['bias'])
 
             if layers[layer]['type'] == 'cauchy':
                 if ii == 0:  # First layer
-                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layer_shapes[0], 1]).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layers[ii].out_features, 1]).to_event(2))
                 elif ii == self.n_layers-1:
                     self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
                 else:
@@ -130,7 +133,7 @@ class BNN(PyroModule):
                 
             elif layers[layer]['type'] == 'gaussian':
                 if ii == 0:  # First layer
-                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layer_shapes[0], 1]).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layers[ii].out_features, 1]).to_event(2))
                 elif ii == self.n_layers-1:
                     self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
                 else:
@@ -160,7 +163,7 @@ class BNN(PyroModule):
             else:
                 t = self.layers[ii](t)
         y_hat = torch.matmul(A, t)
-        sigma = pyro.sample("sigma", dist.Uniform(0., torch.tensor(0.01)))
+        sigma = pyro.sample("sigma", dist.Uniform(0., torch.tensor(0.001)))
         if y != None:
             with pyro.plate("data", len(y)):
                 obs = pyro.sample("obs", dist.Normal(y_hat[:,0], sigma), obs=y)
@@ -296,7 +299,8 @@ def plot_results(config, t, x, true, y_data, x_preds):
     line, = plt.plot(t, x_mean, label='inverse solution')
     # Plot the quantile range as a shaded area
     plt.fill_between(x, lower_quantile, upper_quantile, color=line.get_color(), alpha=0.5, label='90% quantile range')
-    #plt.plot(t, A@x_solution.numpy(), label='A @ solution')
+    #plt.plot(t, x_preds[0:3, :].T)
+    #plt.plot(t, A@x_mean.numpy(), label='A @ solution')
     plt.axis([domain[0], domain[1], -1.0, 1.7])
     plt.xlabel('t')
     plt.ylabel('x')

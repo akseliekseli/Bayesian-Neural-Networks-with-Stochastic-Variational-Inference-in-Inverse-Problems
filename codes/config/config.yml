@@ -8,25 +8,34 @@ initial:
       domain: [-1, 1]
       sigma_noise: 0.01
       bnn:
-        layers:    # add n_layers number of layers either gaussian or cauchy
+        layers:    # add n_layers number of layers either gaussian or cauchy. Last layer is the output
           1:
             type: gaussian
-            weight: 2.5
-            bias: 0.5
+            weight: 10.
+            bias: 5.
             activation: tanh
+            layer_size: 100
           2:
-            type: gaussian
-            weight: 2.5
-            bias: 0.5
+            type: cauhcy
+            weight: 10.
+            bias: 5.
             activation: tanh
+            layer_size: 200
           3:
             type: gaussian
-            weight: 1.5
-            bias: 0.1
+            weight: 10.
+            bias: 5.
+            activation: tanh
+            layer_size: 200
+          4:
+            type: gaussian
+            weight: 0.05
+            bias: 0.01
             activation: 
+            layer_size: 150
       training_parameters:
         learning_rate: 0.001
-        svi_num_iterations: 30000
+        svi_num_iterations: 40000
         random_seed: 42
 
     discrete:
@@ -40,22 +49,25 @@ initial:
         layers:    # add n_layers number of layers either gaussian or cauchy
           1:
             type: cauchy
-            weight: 3.0
-            bias: 2.0
+            weight: 5.0
+            bias: 1.0
             activation: tanh
+            layer_size: 100
           2:
             type: cauchy
-            weight: 2.0
-            bias: 2.0
+            weight: 5.0
+            bias: 1.0
             activation: tanh
+            layer_size: 200
           3:
             type: cauchy
-            weight: 2.0
-            bias: 2.0
+            weight: 0.05
+            bias: 0.01
             activation: 
+            layer_size: 120
       training_parameters:
         learning_rate: 0.001
-        svi_num_iterations: 10000
+        svi_num_iterations: 40000
         random_seed: 42
 
 continuous:
@@ -71,22 +83,25 @@ continuous:
         layers:    # same layers as the initial continuous
           1:
             type: gaussian
-            weight: 0.5
+            weight: 2.5
             bias: 0.5
-            activation: relu
+            activation: tanh
+            layer_size: 100
           2:
             type: gaussian
-            weight: 0.01
-            bias: 0.1
-            activation: relu
+            weight: 2.5
+            bias: 0.5
+            activation: tanh
+            layer_size: 200
           3:
             type: gaussian
-            weight: 0.5
-            bias: 0.01
-            activation: tanh
+            weight: 1.5
+            bias: 0.1
+            activation: 
+            layer_size: 120
       training_parameters:
-        learning_rate: 0.01
-        svi_num_iterations: 5000
+        learning_rate: 0.001
+        svi_num_iterations: 20000
         random_seed: 42
 
     sigma_005:
@@ -100,22 +115,25 @@ continuous:
         layers:    # same layers as the initial continuous
           1:
             type: gaussian
-            weight: 0.5
+            weight: 2.5
             bias: 0.5
-            activation: relu
+            activation: tanh
+            layer_size: 100
           2:
             type: gaussian
-            weight: 0.01
-            bias: 0.1
-            activation: relu
+            weight: 2.5
+            bias: 0.5
+            activation: tanh
+            layer_size: 200
           3:
             type: gaussian
-            weight: 0.5
-            bias: 0.01
-            activation: tanh
+            weight: 1.5
+            bias: 0.1
+            activation: 
+            layer_size: 120
       training_parameters:
-        learning_rate: 0.01
-        svi_num_iterations: 5000
+        learning_rate: 0.001
+        svi_num_iterations: 20000
         random_seed: 42
 
     sigma_01:
@@ -129,83 +147,28 @@ continuous:
         layers:    # same layers as the initial continuous
           1:
             type: gaussian
-            weight: 0.5
+            weight: 2.5
             bias: 0.5
-            activation: relu
+            activation: tanh
+            layer_size: 100
           2:
             type: gaussian
-            weight: 0.01
-            bias: 0.1
-            activation: relu
+            weight: 2.5
+            bias: 0.5
+            activation: tanh
+            layer_size: 200
           3:
             type: gaussian
-            weight: 0.5
-            bias: 0.01
-            activation: tanh
+            weight: 1.5
+            bias: 0.1
+            activation: 
+            layer_size: 120
       training_parameters:
-        learning_rate: 0.01
-        svi_num_iterations: 5000
+        learning_rate: 0.001
+        svi_num_iterations: 20000
         random_seed: 42
 
   iterations:
-    iterations_1000:
-      name: continuous_iterations_1000
-      problem: continuous
-      n_t: 100
-      n_y: 100
-      domain: [-1, 1]
-      sigma_noise: 0.01
-      bnn:
-        layers:    # same layers as the initial continuous
-          1:
-            type: gaussian
-            weight: 0.5
-            bias: 0.5
-            activation: relu
-          2:
-            type: gaussian
-            weight: 0.01
-            bias: 0.1
-            activation: relu
-          3:
-            type: gaussian
-            weight: 0.5
-            bias: 0.01
-            activation: tanh
-      training_parameters:
-        learning_rate: 0.01
-        svi_num_iterations: 1000
-        random_seed: 42
-
-    iterations_2000:
-      name: continuous_iterations_2000
-      problem: continuous
-      n_t: 100
-      n_y: 100
-      domain: [-1, 1]
-      sigma_noise: 0.01
-      bnn:
-        layers:    # same layers as the initial continuous
-          1:
-            type: gaussian
-            weight: 0.5
-            bias: 0.5
-            activation: relu
-          2:
-            type: gaussian
-            weight: 0.01
-            bias: 0.1
-            activation: relu
-          3:
-            type: gaussian
-            weight: 0.5
-            bias: 0.01
-            activation: tanh
-      training_parameters:
-        learning_rate: 0.01
-        svi_num_iterations: 2000
-        random_seed: 42
-
     iterations_5000:
       name: continuous_iterations_5000
       problem: continuous
@@ -217,21 +180,24 @@ continuous:
         layers:    # same layers as the initial continuous
           1:
             type: gaussian
-            weight: 0.5
+            weight: 2.5
             bias: 0.5
-            activation: relu
+            activation: tanh
+            layer_size: 100
           2:
             type: gaussian
-            weight: 0.01
-            bias: 0.1
-            activation: relu
+            weight: 2.5
+            bias: 0.5
+            activation: tanh
+            layer_size: 200
           3:
             type: gaussian
-            weight: 0.5
-            bias: 0.01
-            activation: tanh
+            weight: 1.5
+            bias: 0.1
+            activation: 
+            layer_size: 120
       training_parameters:
-        learning_rate: 0.01
+        learning_rate: 0.001
         svi_num_iterations: 5000
         random_seed: 42
 
@@ -246,22 +212,89 @@ continuous:
         layers:    # same layers as the initial continuous
           1:
             type: gaussian
-            weight: 0.5
+            weight: 2.5
             bias: 0.5
-            activation: relu
+            activation: tanh
+            layer_size: 100
           2:
             type: gaussian
-            weight: 0.01
-            bias: 0.1
-            activation: relu
+            weight: 2.5
+            bias: 0.5
+            activation: tanh
+            layer_size: 200
           3:
             type: gaussian
-            weight: 0.5
-            bias: 0.01
-            activation: tanh
+            weight: 1.5
+            bias: 0.1
+            activation: 
+            layer_size: 120
       training_parameters:
-        learning_rate: 0.01
+        learning_rate: 0.001
         svi_num_iterations: 10000
+        random_seed: 42
+
+    iterations_20000:
+      name: continuous_iterations_20000
+      problem: continuous
+      n_t: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.01
+      bnn:
+        layers:    # same layers as the initial continuous
+          1:
+            type: gaussian
+            weight: 2.5
+            bias: 0.5
+            activation: tanh
+            layer_size: 100
+          2:
+            type: gaussian
+            weight: 2.5
+            bias: 0.5
+            activation: tanh
+            layer_size: 200
+          3:
+            type: gaussian
+            weight: 1.5
+            bias: 0.1
+            activation: 
+            layer_size: 120
+      training_parameters:
+        learning_rate: 0.001
+        svi_num_iterations: 20000
+        random_seed: 42
+
+    iterations_30000:
+      name: continuous_iterations_30000
+      problem: continuous
+      n_t: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.01
+      bnn:
+        layers:    # same layers as the initial continuous
+          1:
+            type: gaussian
+            weight: 2.5
+            bias: 0.5
+            activation: tanh
+            layer_size: 100
+          2:
+            type: gaussian
+            weight: 2.5
+            bias: 0.5
+            activation: tanh
+            layer_size: 200
+          3:
+            type: gaussian
+            weight: 1.5
+            bias: 0.1
+            activation: 
+            layer_size: 120
+      training_parameters:
+        learning_rate: 0.001
+        svi_num_iterations: 30000
         random_seed: 42
 
 discrete:
@@ -276,23 +309,26 @@ discrete:
       bnn:
         layers:    # same layers as the initial discrete
           1:
-            type: gaussian
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            type: cauchy
+            weight: 3.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 100
           2:
             type: cauchy
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            weight: 2.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 200
           3:
             type: cauchy
-            weight: 0.01
-            bias: 0.01
+            weight: 2.0
+            bias: 2.0
             activation: 
+            layer_size: 120
       training_parameters:
         learning_rate: 0.001
-        svi_num_iterations: 5000
+        svi_num_iterations: 20000
         random_seed: 42
 
     sigma_005:
@@ -305,23 +341,26 @@ discrete:
       bnn:
         layers:    # same layers as the initial discrete
           1:
-            type: gaussian
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            type: cauchy
+            weight: 3.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 100
           2:
             type: cauchy
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            weight: 2.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 200
           3:
             type: cauchy
-            weight: 0.01
-            bias: 0.01
+            weight: 2.0
+            bias: 2.0
             activation: 
+            layer_size: 120
       training_parameters:
         learning_rate: 0.001
-        svi_num_iterations: 5000
+        svi_num_iterations: 20000
         random_seed: 42
 
     sigma_01:
@@ -334,84 +373,29 @@ discrete:
       bnn:
         layers:    # same layers as the initial discrete
           1:
-            type: gaussian
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            type: cauchy
+            weight: 3.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 100
           2:
             type: cauchy
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            weight: 2.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 200
           3:
             type: cauchy
-            weight: 0.01
-            bias: 0.01
+            weight: 2.0
+            bias: 2.0
             activation: 
+            layer_size: 120
       training_parameters:
         learning_rate: 0.001
-        svi_num_iterations: 5000
+        svi_num_iterations: 20000
         random_seed: 42
 
   iterations:
-    iterations_1000:
-      name: discrete_iterations_1000
-      problem: discrete
-      n_t: 100
-      n_y: 100
-      domain: [-1, 1]
-      sigma_noise: 0.01
-      bnn:
-        layers:    # same layers as the initial discrete
-          1:
-            type: gaussian
-            weight: 0.5
-            bias: 1.5
-            activation: relu
-          2:
-            type: cauchy
-            weight: 0.5
-            bias: 1.5
-            activation: relu
-          3:
-            type: cauchy
-            weight: 0.01
-            bias: 0.01
-            activation: 
-      training_parameters:
-        learning_rate: 0.001
-        svi_num_iterations: 1000
-        random_seed: 42
-
-    iterations_2000:
-      name: discrete_iterations_2000
-      problem: discrete
-      n_t: 100
-      n_y: 100
-      domain: [-1, 1]
-      sigma_noise: 0.01
-      bnn:
-        layers:    # same layers as the initial discrete
-          1:
-            type: gaussian
-            weight: 0.5
-            bias: 1.5
-            activation: relu
-          2:
-            type: cauchy
-            weight: 0.5
-            bias: 1.5
-            activation: relu
-          3:
-            type: cauchy
-            weight: 0.01
-            bias: 0.01
-            activation: 
-      training_parameters:
-        learning_rate: 0.001
-        svi_num_iterations: 2000
-        random_seed: 42
-
     iterations_5000:
       name: discrete_iterations_5000
       problem: discrete
@@ -422,20 +406,23 @@ discrete:
       bnn:
         layers:    # same layers as the initial discrete
           1:
-            type: gaussian
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            type: cauchy
+            weight: 3.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 100
           2:
             type: cauchy
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            weight: 2.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 200
           3:
             type: cauchy
-            weight: 0.01
-            bias: 0.01
+            weight: 2.0
+            bias: 2.0
             activation: 
+            layer_size: 120
       training_parameters:
         learning_rate: 0.001
         svi_num_iterations: 5000
@@ -451,21 +438,88 @@ discrete:
       bnn:
         layers:    # same layers as the initial discrete
           1:
-            type: gaussian
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            type: cauchy
+            weight: 3.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 100
           2:
             type: cauchy
-            weight: 0.5
-            bias: 1.5
-            activation: relu
+            weight: 2.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 200
           3:
             type: cauchy
-            weight: 0.01
-            bias: 0.01
+            weight: 2.0
+            bias: 2.0
             activation: 
+            layer_size: 120
       training_parameters:
         learning_rate: 0.001
         svi_num_iterations: 10000
+        random_seed: 42
+
+    iterations_20000:
+      name: discrete_iterations_20000
+      problem: discrete
+      n_t: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.01
+      bnn:
+        layers:    # same layers as the initial discrete
+          1:
+            type: cauchy
+            weight: 3.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 100
+          2:
+            type: cauchy
+            weight: 2.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 200
+          3:
+            type: cauchy
+            weight: 2.0
+            bias: 2.0
+            activation: 
+            layer_size: 120
+      training_parameters:
+        learning_rate: 0.001
+        svi_num_iterations: 20000
+        random_seed: 42
+
+    iterations_30000:
+      name: discrete_iterations_30000
+      problem: discrete
+      n_t: 100
+      n_y: 100
+      domain: [-1, 1]
+      sigma_noise: 0.01
+      bnn:
+        layers:    # same layers as the initial discrete
+          1:
+            type: cauchy
+            weight: 3.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 100
+          2:
+            type: cauchy
+            weight: 2.0
+            bias: 2.0
+            activation: tanh
+            layer_size: 200
+          3:
+            type: cauchy
+            weight: 2.0
+            bias: 2.0
+            activation: 
+            layer_size: 120
+      training_parameters:
+        learning_rate: 0.001
+        svi_num_iterations: 30000
         random_seed: 42
