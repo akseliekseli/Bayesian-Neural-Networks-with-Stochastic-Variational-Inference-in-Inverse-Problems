@@ -193,7 +193,7 @@ def generate_the_problem(problem_type: str,
     t = np.round(t, 3)
     h = domain[1] / n_t
     # Create the convolution matrix A
-    model = deconvolution(int(np.round(n_y/2)), int(n_y/16), 'reflect')
+    model = deconvolution(int(np.round(n_y/8)), int(n_y/16), 'reflect')
     A = model.linear_operator(n_y)
     #A = A[1::2, :]
     #A[0,0] = 0
