@@ -73,7 +73,7 @@ def problem_system_continuous(grid: np.array)-> np.array:
 
     # Define boundary and internal points
     x = np.array([-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.3, -0.1, 0.0, 0.2, 0.5, 0.6, 1])
-    y = np.array([0, -0.3, 0., 0.0, 0., 0.6, 0.2,  0.1, 0.4, 0.8, 0.1, 0.0, 0.])
+    y = np.array([0, -0.1, -0.2, 0.0, 0., 0.6, 0.2,  0.1, 0.4, 0.8, 0.1, 0.0, -0.1])
 
     # Create a cubic spline interpolation of the points
     cs = CubicSpline(x, y)
@@ -81,6 +81,45 @@ def problem_system_continuous(grid: np.array)-> np.array:
     
     return output
 
+
+class BNNGuide(PyroModule):
+    def __init__(self, model):
+        super().__init__()
+        self.n_layers = model.n_layers
+        self.layers = PyroModule[torch.nn.ModuleList]([])
+        self.model = model
+        for ii, layer in enumerate(model.layers):
+            # Mean and std of weights
+            self.layers.append(PyroModule[nn.Linear](layer.in_features, layer.out_features))
+            
+            if isinstance(layer.weight, PyroSample):
+                weight_loc = pyro.param(f"weight_loc_{ii}", torch.randn_like(layer.weight.mean))
+                weight_scale = pyro.param(f"weight_scale_{ii}", torch.randn_like(layer.weight.mean).abs())
+                
+                self.layers[ii].weight = PyroSample(dist.Normal(weight_loc, weight_scale).to_event(2))
+            
+            if isinstance(layer.bias, PyroSample):
+                bias_loc = pyro.param(f"bias_loc_{ii}", torch.randn_like(layer.bias.mean))
+                bias_scale = pyro.param(f"bias_scale_{ii}", torch.randn_like(layer.bias.mean).abs())
+                
+                self.layers[ii].bias = PyroSample(dist.Normal(bias_loc, bias_scale).to_event(2))
+        
+        self.sigma = pyro.param("sigma", torch.tensor(0.1), constraint=dist.constraints.positive)
+
+
+    def forward(self, t, A, y=None):
+        # Sample sigma
+        pyro.sample("sigma", dist.Gamma(self.sigma_concentration, self.sigma_rate))
+
+        # Passing the input through the network
+        for ii in range(self.n_layers):
+            t = self.layers[ii](t)
+            if self.model.activations[ii] == 'tanh':
+                t = torch.tanh(t)
+            elif self.model.activations[ii] == 'relu':
+                t = torch.relu(t)
+        
+        return t.view(-1)
 
 
 
@@ -163,7 +202,8 @@ class BNN(PyroModule):
             else:
                 t = self.layers[ii](t)
         y_hat = torch.matmul(A, t)
-        sigma = pyro.sample("sigma", dist.Uniform(0., torch.tensor(0.01)))
+        sigma = pyro.sample("sigma", dist.Uniform(0, 0.01))  # Example shape and rate parameters
+        
         
         if y != None:
             with pyro.plate("data", len(y)):
@@ -172,8 +212,6 @@ class BNN(PyroModule):
         return t.view(-1)
 
  
-
-
 def generate_bnn_realization_plot(bnn, t, A):
     # Generate prior realizations, A not used
     realizations = np.empty((len(t), 10))
@@ -229,6 +267,7 @@ def training_bnn_gpu(config, t, A, y_data):
     adam_params = {"lr": config['training_parameters']['learning_rate'],
                 "betas": (0.9, 0.999)}
     optimizer = Adam(adam_params)
+    guide = BNNGuide(bnn_model)
     svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO())
     num_iterations = config['training_parameters']['svi_num_iterations']
     progress_bar = trange(num_iterations)
@@ -274,10 +313,10 @@ def training_bnn_cpu(config, t, A, y_data):
         progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(t)))
 
     # Get predictions for the solution
-    predictive = pyro.infer.Predictive(bnn_model, guide=guide, num_samples=2000, return_sites=["_RETURN"])
+    predictive = pyro.infer.Predictive(bnn_model, guide=guide, num_samples=2000, return_sites=["_RETURN", "sigma"])
     preds = predictive(t, A)
     x_preds = preds['_RETURN']
-    
+    print(f'sigma: {preds["sigma"]}')
     return x_preds
 
 
@@ -301,7 +340,7 @@ def plot_results(config, t, x, true, y_data, x_preds):
     # Plot the quantile range as a shaded area
     plt.fill_between(x, lower_quantile, upper_quantile, color=line.get_color(), alpha=0.5, label='90% quantile range')
     #plt.plot(t, x_preds[0:3, :].T)
-    plt.plot(t, A@x_mean.numpy(), label='A @ solution')
+    #plt.plot(t, A@x_mean.numpy(), label='A @ solution')
     plt.axis([domain[0], domain[1], -1.0, 1.7])
     plt.xlabel('t')
     plt.ylabel('x')
@@ -322,11 +361,10 @@ def plot_problem(config, t, x, true, y_data):
 if __name__ == '__main__':
     # Parse the config argument
     parser = argparse.ArgumentParser(description="1D-deconvolution solving with BNN prior")
-    parser.add_argument('--problem_type', type=str, required=True, help='continuous or discrete')
-    parser.add_argument('--experiment_type', type=str, required=True, help='sigma')
-    parser.add_argument('--config', type=str, required=True, help='spesific config')
+    parser.add_argument('--file', type=str, required=True, help='config file to use')
+    parser.add_argument('--config', type=str, required=True, help='config to use')
     args = parser.parse_args()
-    config = yaml.safe_load(open("codes/config/config.yml"))[args.problem_type][args.experiment_type][args.config]
+    config = yaml.safe_load(open(f"codes/config/{args.file}"))[args.config]
     
     # Define if trained on cpu or gpu
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

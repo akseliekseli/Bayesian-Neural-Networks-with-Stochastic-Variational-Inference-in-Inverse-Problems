@@ -2,26 +2,21 @@ import yaml
 import os
 import argparse
 
-config = yaml.safe_load(open("codes/config/config.yml"))
-
 # Parse the config argument
 parser = argparse.ArgumentParser(description="1D-deconvolution solving with BNN prior")
-parser.add_argument('--experiment', type=str, required=True, help='Type of config, all to run all configs')
+parser.add_argument('--file', type=str, required=True, help='config file to run fully, all to run all configs')
 args = parser.parse_args()
 
-experiment = args.experiment
+file = args.file
 
-if experiment == 'all':
-    for problem_type in config:
-        for exp_type in config[problem_type]:
-            for conf in config[problem_type][exp_type]:
-                print(f'RUNNING CONFIG: {conf}\n')
-                os.system(f"python3 codes/main_bnn_prior.py --problem_type {problem_type} --experiment_type {exp_type} --config {conf}")
+if file == 'all':
+    for filename in os.listdir("codes/config/"):
+        config = yaml.safe_load(open(f"codes/config/{filename}"))
+        for conf in config:
+            print(f'RUNNING CONFIG: {conf}\n')
+            os.system(f"python3 codes/main_bnn_prior.py --file {filename} --config {conf}")
 else:
-    for problem_type in config:
-        if problem_type == 'initial':
-            pass
-        else:
-            for conf in config[problem_type][experiment]:
-                print(f'RUNNING CONFIG: {conf}\n')
-                os.system(f"python3 codes/main_bnn_prior.py --problem_type {problem_type} --experiment_type {experiment} --config {conf}")
+    config = yaml.safe_load(open(f"codes/config/{args.file}"))
+    for conf in config:
+        print(f'RUNNING CONFIG: {conf}\n')
+        os.system(f"python3 codes/main_bnn_prior.py --file {file} --config {conf}")
