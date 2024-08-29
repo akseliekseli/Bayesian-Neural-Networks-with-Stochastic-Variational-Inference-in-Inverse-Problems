@@ -73,7 +73,7 @@ def problem_system_continuous(grid: np.array)-> np.array:
 
     # Define boundary and internal points
     x = np.array([-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.3, -0.1, 0.0, 0.2, 0.5, 0.6, 1])
-    y = np.array([0, -0.1, -0.2, 0.0, 0., 0.6, 0.2,  0.1, 0.4, 0.8, 0.1, 0.0, -0.1])
+    y = np.array([0, 0.0, 0.0, -0.6, 0., 0.6, 0.2,  -0.1, 0.4, 0.8, 0.1, -0.1, -0.2])
 
     # Create a cubic spline interpolation of the points
     cs = CubicSpline(x, y)
@@ -281,7 +281,7 @@ def training_bnn_gpu(config, t, A, y_data):
         progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(t_gpu)))
 
     # Get predictions for the solution
-    predictive = pyro.infer.Predictive(bnn_model, guide=guide, num_samples=2000, return_sites=["_RETURN"])
+    predictive = pyro.infer.Predictive(bnn_model, guide=guide, num_samples=20000, return_sites=["_RETURN"])
     preds_gpu = predictive(t_gpu, A_gpu)
     x_preds_cpu = preds_gpu['_RETURN'].cpu()
     

@@ -7,7 +7,7 @@ continuous:
   domain: [-1, 1]
   sigma_noise: 0.01
   bnn:
-    layers:    # add n_layers number of layers either gaussian or cauchy. Last layer is the output
+    layers:
       1:
         type: gaussian
         weight: 1.0
