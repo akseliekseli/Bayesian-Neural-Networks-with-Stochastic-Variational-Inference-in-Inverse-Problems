@@ -2,7 +2,7 @@
 continuous:
   name: continuous_initial
   problem: continuous
-  n_t: 100
+  n_t: 400
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01
@@ -13,7 +13,7 @@ continuous:
         weight: 1.0
         bias: 1.0
         activation: tanh
-        layer_size: 40
+        layer_size: 100
       2:
         type: gaussian
         weight: 1.0
@@ -34,13 +34,13 @@ continuous:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 20000
+    svi_num_iterations: 8000
     random_seed: 42
 
 discrete:
   name: discrete_initial
   problem: discrete
-  n_t: 100
+  n_t: 400
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01
@@ -72,5 +72,5 @@ discrete:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 15000
+    svi_num_iterations: 8000
     random_seed: 42
