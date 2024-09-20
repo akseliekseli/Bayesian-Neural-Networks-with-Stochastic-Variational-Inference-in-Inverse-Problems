@@ -27,7 +27,7 @@ from models import Deconvolution_2D
 #plt.rcParams["font.family"] = "Deja Vu"
 #plt.rcParams['font.size'] = 32
 
-n = 40
+n = 20
 
 class BNNGuide(PyroModule):
     def __init__(self, model):
@@ -165,25 +165,27 @@ class BNN(PyroModule):
 def create_circle_image(size, radius):
     img = np.zeros((size, size))
     y, x = np.ogrid[-size//2:size//2, -size//2:size//2]
-    mask = (x**2 + y**2 <= radius**2) & ( x**2 + y**2 >= (radius/2)**2)
+    mask = (x**2 + y**2 <= radius**2) #& ( x**2 + y**2 >= (radius/2)**2)
     img[mask] = 1
     return img
  
 
 def generate_the_problem(sigma_noise: float):
     
-    PSF_size = 30
+    PSF_size = 6
     PSF_param = 3.0
-    BC = 'reflect'
+    BC = 'wrap'
     deconv = Deconvolution_2D(PSF_size, PSF_param, BC)
-    image = create_circle_image(n, 14)
+    image = create_circle_image(n, 3)
 
     true = image
     temp = deconv.forward(image)
 
     y_data = temp #+ np.random.normal(0, sigma_noise, temp.shape)
-    t = np.linspace(0, 1, n*n,dtype=np.float32)
-
+    t = np.linspace(0, 1,n*n,dtype=np.float32)
+    plt.figure()
+    plt.plot(y_data.flatten())
+    #plt.savefig('codes/flattened.png')
     return t, true, y_data, deconv
 
 
@@ -205,6 +207,8 @@ def training_bnn_cpu(config, t, y_data, conv):
     svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO())
     num_iterations = config['training_parameters']['svi_num_iterations']
     progress_bar = trange(num_iterations)
+    
+    print(f'min {y_data.min()}, max {y_data.max()}')
 
     for j in progress_bar:
         loss = svi.step(t, y_data)
@@ -214,12 +218,17 @@ def training_bnn_cpu(config, t, y_data, conv):
     predictive = pyro.infer.Predictive(bnn_model, guide=guide, num_samples=2000, return_sites=["_RETURN", "sigma"])
     preds = predictive(t)
     x_preds = preds['_RETURN']
-    print(f'sigma: {preds["sigma"]}')
+
+    print(f'min {x_preds.min()}, max {x_preds.max()}')
+
+
+    
     return x_preds
 
 
 def calculate_mean_and_quantile(x_preds):
     x_mean = torch.mean(x_preds, axis=0)
+    
     #lower_quantile = torch.quantile(x_preds, 0.05, axis=0)
     #upper_quantile = torch.quantile(x_preds, 0.95, axis=0)
 
@@ -233,11 +242,15 @@ def calculate_mean_and_quantile(x_preds):
 
 def plot_results(config, true, y_data, x_preds):
     x_mean, lower_quantile, upper_quantile = calculate_mean_and_quantile(x_preds)
-
+    plt.figure()
+    plt.plot(true.flatten(), label='true')
+    plt.plot(y_data.flatten(), label='data')
+    plt.plot(x_mean.flatten(), label='bnn')
+    plt.savefig('codes/flattened.png')
     print(f'X {x_preds.shape}')
 
     plt.figure()
-    plt.imshow(x_mean.reshape(n, n))
+    plt.imshow(x_preds[0,:].reshape(n, n))
     plt.show()
     '''plt.plot(x, y_data, label='data')
     line, = plt.plot(t, x_mean, label='inverse solution')
@@ -309,7 +322,7 @@ if __name__ == '__main__':
     with open(f'results/{config['name']}.pickle', 'wb') as handle:
         pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
     '''
-    print('HERE')
+    
     plot_problem(config, true, y_data)
     plot_results(config, true, y_data, x_preds)
     

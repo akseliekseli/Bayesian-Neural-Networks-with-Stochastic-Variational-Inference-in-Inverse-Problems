@@ -173,9 +173,9 @@ if __name__ == '__main__':
 
 
     t = torch.linspace(-1, 1, n_t)
-    A = np.eye(n_t)
+    A = torch.eye(n_t)
     bnn_model = BNN(n_in=n_t,
                     n_out=n_t,
                     layers=config['bnn']['layers'])
-    generate_bnn_realization_plot(bnn_model, t, A, args.config, problem)
+    generate_bnn_realization_plot(bnn_model, t, A, args.config)
     
