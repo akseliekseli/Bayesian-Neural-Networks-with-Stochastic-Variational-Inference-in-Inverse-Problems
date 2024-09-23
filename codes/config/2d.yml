@@ -6,29 +6,41 @@ initial:
     layers:
       1:
         type: gaussian
-        weight: 5.
-        bias: 5.
+        weight: 0.5
+        bias: 0.5
         activation: tanh
-        layer_size: 80
+        layer_size: 2000
       2:
         type: gaussian
-        weight: 5.
-        bias: 5.
+        weight: 0.5
+        bias: 0.05
         activation: tanh
-        layer_size: 100
+        layer_size: 800
       3:
         type: gaussian
-        weight: 5.
-        bias: 5.
+        weight: 0.5
+        bias: 0.5
         activation: tanh
-        layer_size: 100
+        layer_size: 2000
       4:
         type: gaussian
-        weight: 5.0
-        bias: 5.0
-        activation: relu
-        layer_size: 80
+        weight: 0.5
+        bias: 0.05
+        activation: tanh
+        layer_size: 800
+      5:
+        type: gaussian
+        weight: 0.5
+        bias: 0.5
+        activation: tanh
+        layer_size: 2000
+      6:
+        type: gaussian
+        weight: 0.5
+        bias: 0.05
+        activation: 
+        layer_size: 800
   training_parameters:
-    learning_rate: 0.00001
-    svi_num_iterations: 200000
+    learning_rate: 0.001
+    svi_num_iterations: 8000
     random_seed: 42

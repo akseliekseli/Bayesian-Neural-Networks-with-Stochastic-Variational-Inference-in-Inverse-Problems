@@ -22,12 +22,10 @@ from tqdm.auto import trange
 
 from models import Deconvolution_2D
 
-
-
 #plt.rcParams["font.family"] = "Deja Vu"
 #plt.rcParams['font.size'] = 32
 
-n = 20
+n = 10
 
 class BNNGuide(PyroModule):
     def __init__(self, model):
@@ -77,7 +75,7 @@ class BNN(PyroModule):
         super().__init__()
         self.conv = conv
         self.n_layers = len(layers)
-
+        print(n_out)
         self.layers = PyroModule[torch.nn.ModuleList]([])
         self.activations = []
         for ii, layer in enumerate(layers):
@@ -87,6 +85,7 @@ class BNN(PyroModule):
             elif ii == self.n_layers-1:
                 input = self.layers[-1].out_features
                 self.layers.append(PyroModule[nn.Linear](input, n_out))
+                print(f'OUT: {self.layers[-1].out_features}')
             else:
                 input = self.layers[-1].out_features
                 self.layers.append(PyroModule[nn.Linear](input, layers[layer]['layer_size']))
@@ -106,7 +105,7 @@ class BNN(PyroModule):
 
             if layers[layer]['type'] == 'cauchy':
                 if ii == 0:  # First layer
-                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layers[ii].out_features, 1]).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layers[ii].out_features, n_in]).to_event(2))
                 elif ii == self.n_layers-1:
                     self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
                 else:
@@ -120,7 +119,7 @@ class BNN(PyroModule):
                 
             elif layers[layer]['type'] == 'gaussian':
                 if ii == 0:  # First layer
-                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layers[ii].out_features, 1]).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layers[ii].out_features, n_in]).to_event(2))
                 elif ii == self.n_layers-1:
                     self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
                 else:
@@ -139,65 +138,76 @@ class BNN(PyroModule):
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
-    def forward(self, t, y=None):
-        t = t.reshape(-1,1)
-
+    def forward(self, t, data=None):
+        t = t.T
+        
         for ii in range(self.n_layers):
             if self.activations[ii] == 'tanh':
                 t = self.tanh(self.layers[ii](t))
+            #    print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
             elif self.activations[ii] == 'relu':
                 t = self.relu(self.layers[ii](t))
+            #    print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
             else:
                 t = self.layers[ii](t)
+            #    print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
 
-        y_hat = self.conv.forward(t.detach().numpy().reshape(n, n)).flatten()
+        t = t.reshape(n, n)
+        y_hat = conv.forward(t.detach().numpy()).flatten()
+        #print(f' yhat: {y_hat.shape}')
         y_hat = torch.tensor(y_hat)
-        sigma = pyro.sample("sigma", dist.Uniform(0, 0.01))  # Example shape and rate parameters
+        sigma = pyro.sample("sigma", dist.Uniform(0, 0.001))
 
         
-        if y != None:
-            with pyro.plate("data", len(y.flatten())):
-                obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=y.flatten())
+        if data != None:
+            with pyro.plate("data", len(data.flatten())):
+                obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=data.flatten())
 
         return t.view(-1)
 
 
-def create_circle_image(size, radius):
-    img = np.zeros((size, size))
-    y, x = np.ogrid[-size//2:size//2, -size//2:size//2]
-    mask = (x**2 + y**2 <= radius**2) #& ( x**2 + y**2 >= (radius/2)**2)
-    img[mask] = 1
-    return img
- 
-
 def generate_the_problem(sigma_noise: float):
+
+    radius = 0.2  # Radius of the circle
+
+    x_input = np.linspace(0, 1, n).reshape(n, 1)
+    y_input = np.linspace(0, 1, n).reshape(n, 1)
+    x_coord, y_coord = np.meshgrid(x_input, y_input)
+
+    center_x, center_y = 0.5, 0.5
+    distance_from_center = np.sqrt((x_coord - center_x) ** 2 + (y_coord - center_y) ** 2)
+    circle_image = np.where(distance_from_center <= radius, 1., 0.)
     
-    PSF_size = 6
-    PSF_param = 3.0
+    PSF_size = 3
+    PSF_param = 1.
     BC = 'wrap'
     deconv = Deconvolution_2D(PSF_size, PSF_param, BC)
-    image = create_circle_image(n, 3)
-
-    true = image
-    temp = deconv.forward(image)
-
-    y_data = temp #+ np.random.normal(0, sigma_noise, temp.shape)
-    t = np.linspace(0, 1,n*n,dtype=np.float32)
+    
+    
+    true = circle_image
+    temp = deconv.forward(true)
+    data = temp #+ np.random.normal(0, sigma_noise, temp.shape)
+    
     plt.figure()
-    plt.plot(y_data.flatten())
-    #plt.savefig('codes/flattened.png')
-    return t, true, y_data, deconv
+    plt.imshow(true)
+    plt.savefig('codes/image.png')
+    plt.figure()
+    plt.imshow(data)
+    plt.savefig('codes/circle_image.png')
+    return x_coord, y_coord, true, data, deconv
 
 
 
-def training_bnn_cpu(config, t, y_data, conv):
+def training_bnn_cpu(config, t, data, conv):
     # Set Pyro random seed
     pyro.set_rng_seed(config['training_parameters']['random_seed'])
 
-
+    n_input = 2
+    n_output = 1
+    
     # Define Pyro BNN object and training parameters
-    bnn_model = BNN(n_in=n*n,
-                    n_out=n*n,
+    bnn_model = BNN(n_in=n_input,
+                    n_out=n_output,
                     layers=config['bnn']['layers'],
                     conv=conv)
     guide = AutoDiagonalNormal(bnn_model)
@@ -208,10 +218,10 @@ def training_bnn_cpu(config, t, y_data, conv):
     num_iterations = config['training_parameters']['svi_num_iterations']
     progress_bar = trange(num_iterations)
     
-    print(f'min {y_data.min()}, max {y_data.max()}')
+    print(f'min {data.min()}, max {data.max()}')
 
     for j in progress_bar:
-        loss = svi.step(t, y_data)
+        loss = svi.step(t, data)
         progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(t)))
 
     # Get predictions for the solution
@@ -240,19 +250,19 @@ def calculate_mean_and_quantile(x_preds):
     return x_mean, lower_quantile, upper_quantile
 
 
-def plot_results(config, true, y_data, x_preds):
+def plot_results(config, true, data, x_preds):
     x_mean, lower_quantile, upper_quantile = calculate_mean_and_quantile(x_preds)
     plt.figure()
     plt.plot(true.flatten(), label='true')
-    plt.plot(y_data.flatten(), label='data')
-    plt.plot(x_mean.flatten(), label='bnn')
+    plt.plot(data.flatten(), label='data')
+    plt.plot(x_mean, label='bnn')
     plt.savefig('codes/flattened.png')
     print(f'X {x_preds.shape}')
 
     plt.figure()
-    plt.imshow(x_preds[0,:].reshape(n, n))
+    plt.imshow(x_mean.reshape(n, n))
     plt.show()
-    '''plt.plot(x, y_data, label='data')
+    '''plt.plot(x, data, label='data')
     line, = plt.plot(t, x_mean, label='inverse solution')
     # Plot the quantile range as a shaded area
     plt.fill_between(t, lower_quantile, upper_quantile, color=line.get_color(), alpha=0.5, label='90% quantile range')
@@ -302,29 +312,30 @@ if __name__ == '__main__':
     
     np.random.seed(42)
     
-    t, true, y_data, conv = generate_the_problem(sigma_noise)
+    x, y, true, data, conv = generate_the_problem(sigma_noise)
 
-    t = torch.tensor(t)
+    t = torch.tensor(np.concatenate((x.reshape(1, -1), y.reshape(1, -1)), axis=0), dtype=torch.float32)
     true = torch.tensor(true)
-    y_data = torch.tensor(y_data)
+    data = torch.tensor(data)
 
+    print(t.shape)
     # Convert data to PyTorch tensors
 
-    x_preds = training_bnn_cpu(config, t, y_data, conv)
+    x_preds = training_bnn_cpu(config, t, data, conv)
     
     '''
     results = dict({'t': t,
                             'x': x,
                             'true': true,
-                            'y_data': y_data,
+                            'data': data,
                             'x_preds': x_preds})
     
     with open(f'results/{config['name']}.pickle', 'wb') as handle:
         pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
     '''
     
-    plot_problem(config, true, y_data)
-    plot_results(config, true, y_data, x_preds)
+    plot_problem(config, true, data)
+    plot_results(config, true, data, x_preds)
     
 
     
