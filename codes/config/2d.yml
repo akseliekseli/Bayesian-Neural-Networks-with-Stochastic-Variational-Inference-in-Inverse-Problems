@@ -1,46 +1,28 @@
 initial:
   name: 2d_initial
 
-  sigma_noise: 0.001
+  sigma_noise: 0.01
   bnn:
     layers:
       1:
-        type: gaussian
-        weight: 0.5
-        bias: 0.5
+        type: cauchy
+        weight: 10.
+        bias: 10.
         activation: tanh
-        layer_size: 2000
+        layer_size: 200
       2:
-        type: gaussian
-        weight: 0.5
-        bias: 0.05
+        type: cauchy
+        weight: 10.
+        bias: 10.
         activation: tanh
         layer_size: 800
       3:
-        type: gaussian
-        weight: 0.5
-        bias: 0.5
-        activation: tanh
-        layer_size: 2000
-      4:
-        type: gaussian
-        weight: 0.5
-        bias: 0.05
-        activation: tanh
-        layer_size: 800
-      5:
-        type: gaussian
-        weight: 0.5
-        bias: 0.5
-        activation: tanh
-        layer_size: 2000
-      6:
-        type: gaussian
-        weight: 0.5
-        bias: 0.05
+        type: cauchy
+        weight: 0.01
+        bias: 0.01
         activation: 
-        layer_size: 800
+        layer_size: 200
   training_parameters:
     learning_rate: 0.001
-    svi_num_iterations: 8000
+    svi_num_iterations: 100000
     random_seed: 42

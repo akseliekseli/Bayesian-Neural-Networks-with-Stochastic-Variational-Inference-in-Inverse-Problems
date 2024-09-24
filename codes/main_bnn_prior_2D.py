@@ -152,11 +152,11 @@ class BNN(PyroModule):
                 t = self.layers[ii](t)
             #    print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
 
-        t = t.reshape(n, n)
+        t = t.T.reshape(n, n)
         y_hat = conv.forward(t.detach().numpy()).flatten()
         #print(f' yhat: {y_hat.shape}')
         y_hat = torch.tensor(y_hat)
-        sigma = pyro.sample("sigma", dist.Uniform(0, 0.001))
+        sigma = pyro.sample("sigma", dist.Uniform(0, 0.01))
 
         
         if data != None:
@@ -178,7 +178,7 @@ def generate_the_problem(sigma_noise: float):
     distance_from_center = np.sqrt((x_coord - center_x) ** 2 + (y_coord - center_y) ** 2)
     circle_image = np.where(distance_from_center <= radius, 1., 0.)
     
-    PSF_size = 3
+    PSF_size = 1
     PSF_param = 1.
     BC = 'wrap'
     deconv = Deconvolution_2D(PSF_size, PSF_param, BC)
@@ -186,7 +186,7 @@ def generate_the_problem(sigma_noise: float):
     
     true = circle_image
     temp = deconv.forward(true)
-    data = temp #+ np.random.normal(0, sigma_noise, temp.shape)
+    data = temp + np.random.normal(0, sigma_noise, temp.shape)
     
     plt.figure()
     plt.imshow(true)
@@ -255,7 +255,9 @@ def plot_results(config, true, data, x_preds):
     plt.figure()
     plt.plot(true.flatten(), label='true')
     plt.plot(data.flatten(), label='data')
-    plt.plot(x_mean, label='bnn')
+    line, = plt.plot(x_mean, label='bnn')
+    plt.fill_between(np.arange(0, len(true.flatten())),lower_quantile, upper_quantile, color=line.get_color(), alpha=0.5, label='90% quantile range')
+    plt.plot(np.arange(0, len(true.flatten())), x_preds[0:2,:].T)
     plt.savefig('codes/flattened.png')
     print(f'X {x_preds.shape}')
 

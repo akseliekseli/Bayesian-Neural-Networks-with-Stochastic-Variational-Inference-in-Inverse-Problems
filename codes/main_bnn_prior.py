@@ -262,8 +262,8 @@ def training_bnn_gpu(config, t, A, y_data):
     pyro.set_rng_seed(config['training_parameters']['random_seed'])
 
     # Define Pyro BNN object and training parameters
-    bnn_model = BNN(n_in=n_t,
-                    n_out=n_t,
+    bnn_model = BNN(n_in=1,
+                    n_out=1,
                     layers=config['bnn']['layers'])
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],
