@@ -39,7 +39,7 @@ def problem_system_combined(grid: np.array)-> np.array:
             output[idx] = params[2]
         elif point <= 0.6:
             #output[idx] = params[3]
-            output[idx] = params[3] #+ 0.3*np.sin(2*np.pi*point*2)
+            output[idx] = params[3] + 0.3*np.sin(2*np.pi*point*2)
         else:
             output[idx] = point*params[4]
     
@@ -159,9 +159,9 @@ class BNN(PyroModule):
 
             if layers[layer]['type'] == 'cauchy':
                 if ii == 0:  # First layer
-                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layers[ii].out_features, 1]).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layers[ii].out_features, n_in]).to_event(2))
                 elif ii == self.n_layers-1:
-                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([n_out, self.layers[ii].in_features]).to_event(2))
                 else:
                     self.layers[ii].weight = PyroSample(dist.Cauchy(0., torch.tensor(weight)).expand([self.layers[ii].out_features, self.layers[ii].in_features]).to_event(2))
 
@@ -173,9 +173,9 @@ class BNN(PyroModule):
                 
             elif layers[layer]['type'] == 'gaussian':
                 if ii == 0:  # First layer
-                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layers[ii].out_features, 1]).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layers[ii].out_features, n_in]).to_event(2))
                 elif ii == self.n_layers-1:
-                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([1, self.layers[ii].in_features]).to_event(2))
+                    self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([n_out, self.layers[ii].in_features]).to_event(2))
                 else:
                     self.layers[ii].weight = PyroSample(dist.Normal(0., torch.tensor(weight)).expand([self.layers[ii].out_features, self.layers[ii].in_features]).to_event(2))
 
@@ -203,7 +203,7 @@ class BNN(PyroModule):
             else:
                 t = self.layers[ii](t)
         y_hat = torch.matmul(A, t)
-        sigma = pyro.sample("sigma", dist.Uniform(0, 0.01))  # Example shape and rate parameters
+        sigma = pyro.sample("sigma", dist.Uniform(0, 0.01))
         
         
         if y != None:
@@ -244,8 +244,10 @@ def generate_the_problem(problem_type: str,
     # Construct the true function
     if problem_type == 'discrete':
         true = problem_system_discrete(t)
-    if problem_type == 'continuous':
+    elif problem_type == 'continuous':
         true = problem_system_continuous(t)
+    elif problem_type == 'combined':
+        true = problem_system_combined(t)
     true = true.reshape(-1,1)
     temp = A@true
     #ind = temp > 0
@@ -299,8 +301,8 @@ def training_bnn_cpu(config, t, A, y_data):
     A = torch.from_numpy(A).float()
 
     # Define Pyro BNN object and training parameters
-    bnn_model = BNN(n_in=n_t,
-                    n_out=n_t,
+    bnn_model = BNN(n_in=1,
+                    n_out=1,
                     layers=config['bnn']['layers'])
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],

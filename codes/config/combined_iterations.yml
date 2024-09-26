@@ -1,84 +1,7 @@
-
-continuous:
-  name: continuous_initial
-  problem: continuous
-  n_t: 400
-  n_y: 100
-  domain: [-1, 1]
-  sigma_noise: 0.01
-  bnn:
-    layers:
-      1:
-        type: gaussian
-        weight: 1.0
-        bias: 1.0
-        activation: tanh
-        layer_size: 100
-      2:
-        type: gaussian
-        weight: 1.0
-        bias: 1.0
-        activation: tanh
-        layer_size: 80
-      3:
-        type: gaussian
-        weight: 1.0
-        bias: 1.0
-        activation: tanh
-        layer_size: 40
-      4:
-        type: gaussian
-        weight: 1.0
-        bias: 1.0
-        activation: 
-        layer_size: 80
-  training_parameters:
-    learning_rate: 0.01
-    svi_num_iterations: 8000
-    random_seed: 42
-
-discrete:
-  name: discrete_initial
-  problem: discrete
-  n_t: 400
-  n_y: 100
-  domain: [-1, 1]
-  sigma_noise: 0.01
-  bnn:
-    layers:    # add n_layers number of layers either gaussian or cauchy
-      1:
-        type: cauchy
-        weight: 5.
-        bias: 0.1
-        activation: tanh
-        layer_size: 40
-      2:
-        type: cauchy
-        weight: 5.
-        bias: 0.1
-        activation: tanh
-        layer_size: 80
-      3:
-        type: cauchy
-        weight: 5.
-        bias: 0.1
-        activation: tanh
-        layer_size: 40
-      4:
-        type: cauchy
-        weight: 2.0
-        bias: 3.0
-        activation: 
-        layer_size: 80
-  training_parameters:
-    learning_rate: 0.01
-    svi_num_iterations: 8000
-    random_seed: 42
-
-combined:
-  name: combined_initial
+iterations_5000:
+  name: combined_iterations_5000
   problem: combined
-  n_t: 400
+  n_t: 100
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01
@@ -89,7 +12,7 @@ combined:
         weight: 1.0
         bias: 1.0
         activation: tanh
-        layer_size: 100
+        layer_size: 40
       2:
         type: cauchy
         weight: 1.0
@@ -110,5 +33,119 @@ combined:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 8000
+    svi_num_iterations: 5000
+    random_seed: 42
+
+iterations_10000:
+  name: combined_iterations_10000
+  problem: combined
+  n_t: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.01
+  bnn:
+    layers:
+      1:
+        type: gaussian
+        weight: 1.0
+        bias: 1.0
+        activation: tanh
+        layer_size: 40
+      2:
+        type: cauchy
+        weight: 1.0
+        bias: 1.0
+        activation: tanh
+        layer_size: 80
+      3:
+        type: cauchy
+        weight: 1.0
+        bias: 1.0
+        activation: tanh
+        layer_size: 40
+      4:
+        type: gaussian
+        weight: 1.0
+        bias: 1.0
+        activation: 
+        layer_size: 80
+  training_parameters:
+    learning_rate: 0.01
+    svi_num_iterations: 10000
+    random_seed: 42
+
+iterations_20000:
+  name: combined_iterations_20000
+  problem: combined
+  n_t: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.01
+  bnn:
+    layers:
+      1:
+        type: gaussian
+        weight: 1.0
+        bias: 1.0
+        activation: tanh
+        layer_size: 40
+      2:
+        type: cauchy
+        weight: 1.0
+        bias: 1.0
+        activation: tanh
+        layer_size: 80
+      3:
+        type: cauchy
+        weight: 1.0
+        bias: 1.0
+        activation: tanh
+        layer_size: 40
+      4:
+        type: gaussian
+        weight: 1.0
+        bias: 1.0
+        activation: 
+        layer_size: 80
+  training_parameters:
+    learning_rate: 0.01
+    svi_num_iterations: 20000
+    random_seed: 42
+
+iterations_30000:
+  name: combined_iterations_30000
+  problem: combined
+  n_t: 100
+  n_y: 100
+  domain: [-1, 1]
+  sigma_noise: 0.01
+  bnn:
+    layers:
+      1:
+        type: gaussian
+        weight: 1.0
+        bias: 1.0
+        activation: tanh
+        layer_size: 40
+      2:
+        type: cauchy
+        weight: 1.0
+        bias: 1.0
+        activation: tanh
+        layer_size: 80
+      3:
+        type: cauchy
+        weight: 1.0
+        bias: 1.0
+        activation: tanh
+        layer_size: 40
+      4:
+        type: gaussian
+        weight: 1.0
+        bias: 1.0
+        activation: 
+        layer_size: 80
+  training_parameters:
+    learning_rate: 0.01
+    svi_num_iterations: 30000
     random_seed: 42

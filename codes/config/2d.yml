@@ -5,24 +5,30 @@ initial:
   bnn:
     layers:
       1:
-        type: cauchy
-        weight: 10.
-        bias: 10.
+        type: gaussian
+        weight: 1.
+        bias: 1.
         activation: tanh
-        layer_size: 200
+        layer_size: 40
       2:
-        type: cauchy
-        weight: 10.
-        bias: 10.
+        type: gaussian
+        weight: 1.
+        bias: 1.
         activation: tanh
-        layer_size: 800
+        layer_size: 10
       3:
-        type: cauchy
-        weight: 0.01
-        bias: 0.01
+        type: gaussian
+        weight: 1.
+        bias: 1.
+        activation: tanh
+        layer_size: 50
+      4:
+        type: gaussian
+        weight: 1.
+        bias: 1.
         activation: 
-        layer_size: 200
+        layer_size: 40
   training_parameters:
-    learning_rate: 0.001
-    svi_num_iterations: 100000
+    learning_rate: 0.01
+    svi_num_iterations: 10000
     random_seed: 42

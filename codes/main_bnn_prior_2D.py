@@ -25,7 +25,7 @@ from models import Deconvolution_2D
 #plt.rcParams["font.family"] = "Deja Vu"
 #plt.rcParams['font.size'] = 32
 
-n = 10
+n = 20
 
 class BNNGuide(PyroModule):
     def __init__(self, model):
@@ -65,7 +65,7 @@ class BNNGuide(PyroModule):
             elif self.model.activations[ii] == 'relu':
                 t = torch.relu(t)
         
-        return t.view(-1)
+        return t.flatten()
 
 
 
@@ -139,36 +139,40 @@ class BNN(PyroModule):
         self.tanh = nn.Tanh()
 
     def forward(self, t, data=None):
-        t = t.T
-        
+        t = t
+        #print(t.shape)
         for ii in range(self.n_layers):
+            W = self.layers[ii].weight
+            b = self.layers[ii].bias
             if self.activations[ii] == 'tanh':
-                t = self.tanh(self.layers[ii](t))
-            #    print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
+                t = self.tanh(W@t + b.T)
+        #        print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
             elif self.activations[ii] == 'relu':
-                t = self.relu(self.layers[ii](t))
-            #    print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
+                t = self.relu(W@t + b.T)
+        #        print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
             else:
-                t = self.layers[ii](t)
-            #    print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
+                t = W@t + b.T
+        #        print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
+        
+        #y_hat = t.view(-1)
+        t = t.reshape(n, n)
 
-        t = t.T.reshape(n, n)
         y_hat = conv.forward(t.detach().numpy()).flatten()
         #print(f' yhat: {y_hat.shape}')
         y_hat = torch.tensor(y_hat)
-        sigma = pyro.sample("sigma", dist.Uniform(0, 0.01))
+        sigma = pyro.sample("sigma", dist.Uniform(0, 0.001))
 
         
         if data != None:
             with pyro.plate("data", len(data.flatten())):
                 obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=data.flatten())
 
-        return t.view(-1)
+        return t.flatten()
 
 
 def generate_the_problem(sigma_noise: float):
 
-    radius = 0.2  # Radius of the circle
+    radius = 0.3  # Radius of the circle
 
     x_input = np.linspace(0, 1, n).reshape(n, 1)
     y_input = np.linspace(0, 1, n).reshape(n, 1)
@@ -178,15 +182,15 @@ def generate_the_problem(sigma_noise: float):
     distance_from_center = np.sqrt((x_coord - center_x) ** 2 + (y_coord - center_y) ** 2)
     circle_image = np.where(distance_from_center <= radius, 1., 0.)
     
-    PSF_size = 1
-    PSF_param = 1.
-    BC = 'wrap'
+    PSF_size = 8
+    PSF_param = 4.
+    BC = 'reflect'
     deconv = Deconvolution_2D(PSF_size, PSF_param, BC)
     
     
     true = circle_image
     temp = deconv.forward(true)
-    data = temp + np.random.normal(0, sigma_noise, temp.shape)
+    data = temp# + np.random.normal(0, sigma_noise, true.shape)
     
     plt.figure()
     plt.imshow(true)
@@ -195,6 +199,16 @@ def generate_the_problem(sigma_noise: float):
     plt.imshow(data)
     plt.savefig('codes/circle_image.png')
     return x_coord, y_coord, true, data, deconv
+
+def generate_bnn_realization_plot(bnn, t):
+    # Generate prior realizations, A not used
+    realizations = np.empty((t.shape[1], 10))
+    for ii in range(0, 10):
+        realizations[:,ii] = bnn.forward(t)
+    plt.figure()
+    plt.plot(realizations)
+    plt.savefig('realization.png')
+
 
 
 
@@ -219,7 +233,7 @@ def training_bnn_cpu(config, t, data, conv):
     progress_bar = trange(num_iterations)
     
     print(f'min {data.min()}, max {data.max()}')
-
+    generate_bnn_realization_plot(bnn_model, t)
     for j in progress_bar:
         loss = svi.step(t, data)
         progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(t)))
@@ -230,8 +244,7 @@ def training_bnn_cpu(config, t, data, conv):
     x_preds = preds['_RETURN']
 
     print(f'min {x_preds.min()}, max {x_preds.max()}')
-
-
+    print(x_preds.shape)
     
     return x_preds
 
@@ -250,7 +263,7 @@ def calculate_mean_and_quantile(x_preds):
     return x_mean, lower_quantile, upper_quantile
 
 
-def plot_results(config, true, data, x_preds):
+def plot_results(config, true, data, x_preds, conv):
     x_mean, lower_quantile, upper_quantile = calculate_mean_and_quantile(x_preds)
     plt.figure()
     plt.plot(true.flatten(), label='true')
@@ -264,17 +277,12 @@ def plot_results(config, true, data, x_preds):
     plt.figure()
     plt.imshow(x_mean.reshape(n, n))
     plt.show()
-    '''plt.plot(x, data, label='data')
-    line, = plt.plot(t, x_mean, label='inverse solution')
-    # Plot the quantile range as a shaded area
-    plt.fill_between(t, lower_quantile, upper_quantile, color=line.get_color(), alpha=0.5, label='90% quantile range')
-    #plt.plot(t, x_preds[0:3, :].T)
-    #plt.plot(t, A@x_mean.numpy(), label='A @ solution')
-    plt.axis([domain[0], domain[1], -1.0, 1.7])
-    plt.xlabel('t')
-    plt.ylabel('x')
-    '''
     plt.savefig(f"plots/{config['name']}_solution.png")
+    plt.figure()
+    plt.imshow(conv.forward(x_mean.reshape(n, n)))
+    plt.show()
+    plt.savefig(f"plots/{config['name']}_forward.png")
+    
 
 
 def plot_problem(config, true, y):
@@ -320,7 +328,8 @@ if __name__ == '__main__':
     true = torch.tensor(true)
     data = torch.tensor(data)
 
-    print(t.shape)
+    np.savetxt("foo.csv", t.T, delimiter=",")
+
     # Convert data to PyTorch tensors
 
     x_preds = training_bnn_cpu(config, t, data, conv)
@@ -337,7 +346,7 @@ if __name__ == '__main__':
     '''
     
     plot_problem(config, true, data)
-    plot_results(config, true, data, x_preds)
+    plot_results(config, true, data, x_preds, conv)
     
 
     
