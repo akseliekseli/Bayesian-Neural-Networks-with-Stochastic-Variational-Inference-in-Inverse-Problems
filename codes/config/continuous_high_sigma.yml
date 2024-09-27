@@ -1,7 +1,7 @@
 continuous:
   name: continuous_high_sigma
   problem: continuous
-  n_t: 400
+  n_t: 100
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01

@@ -2,6 +2,7 @@ import pickle
 import argparse
 import yaml
 
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -25,7 +26,7 @@ from models import Deconvolution_2D
 #plt.rcParams["font.family"] = "Deja Vu"
 #plt.rcParams['font.size'] = 32
 
-n = 20
+n = 50
 
 class BNNGuide(PyroModule):
     def __init__(self, model):
@@ -50,12 +51,12 @@ class BNNGuide(PyroModule):
                 
                 self.layers[ii].bias = PyroSample(dist.Normal(bias_loc, bias_scale).to_event(2))
         
-        self.sigma = pyro.param("sigma", torch.tensor(0.1), constraint=dist.constraints.positive)
+        self.sigma = pyro.param("sigma", torch.tensor(0.01), constraint=dist.constraints.positive)
 
 
     def forward(self, t, A, y=None):
         # Sample sigma
-        pyro.sample("sigma", dist.Gamma(self.sigma_concentration, self.sigma_rate))
+        pyro.sample("sigma", dist.Delta(torch.tensor(0.01)))
 
         # Passing the input through the network
         for ii in range(self.n_layers):
@@ -139,35 +140,32 @@ class BNN(PyroModule):
         self.tanh = nn.Tanh()
 
     def forward(self, t, data=None):
-        t = t
-        #print(t.shape)
+        t = t.T
+        
         for ii in range(self.n_layers):
-            W = self.layers[ii].weight
-            b = self.layers[ii].bias
             if self.activations[ii] == 'tanh':
-                t = self.tanh(W@t + b.T)
+                t = self.tanh(self.layers[ii](t))
         #        print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
             elif self.activations[ii] == 'relu':
-                t = self.relu(W@t + b.T)
+                t = self.relu(self.layers[ii](t))
         #        print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
             else:
-                t = W@t + b.T
+                t = self.layers[ii](t)
         #        print(f'layer {ii}, weight: { self.layers[ii].weight.shape}, bias: { self.layers[ii].bias.shape}')
         
         #y_hat = t.view(-1)
         t = t.reshape(n, n)
-
+        #y_hat = t.T
         y_hat = conv.forward(t.detach().numpy()).flatten()
         #print(f' yhat: {y_hat.shape}')
         y_hat = torch.tensor(y_hat)
-        sigma = pyro.sample("sigma", dist.Uniform(0, 0.001))
+        sigma = pyro.param("sigma", torch.tensor(0.01))
 
-        
         if data != None:
-            with pyro.plate("data", len(data.flatten())):
-                obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=data.flatten())
+            with pyro.plate("data", len(data.reshape(-1))):
+                obs = pyro.sample("obs", dist.Normal(y_hat, sigma), obs=data.reshape(-1))
 
-        return t.flatten()
+        return t.reshape(-1)
 
 
 def generate_the_problem(sigma_noise: float):
@@ -182,15 +180,15 @@ def generate_the_problem(sigma_noise: float):
     distance_from_center = np.sqrt((x_coord - center_x) ** 2 + (y_coord - center_y) ** 2)
     circle_image = np.where(distance_from_center <= radius, 1., 0.)
     
-    PSF_size = 8
-    PSF_param = 4.
-    BC = 'reflect'
+    PSF_size = 6
+    PSF_param = 2.
+    BC = 'wrap'
     deconv = Deconvolution_2D(PSF_size, PSF_param, BC)
     
     
     true = circle_image
     temp = deconv.forward(true)
-    data = temp# + np.random.normal(0, sigma_noise, true.shape)
+    data = temp + np.random.normal(0, sigma_noise, true.shape)
     
     plt.figure()
     plt.imshow(true)
@@ -200,6 +198,7 @@ def generate_the_problem(sigma_noise: float):
     plt.savefig('codes/circle_image.png')
     return x_coord, y_coord, true, data, deconv
 
+
 def generate_bnn_realization_plot(bnn, t):
     # Generate prior realizations, A not used
     realizations = np.empty((t.shape[1], 10))
@@ -208,8 +207,6 @@ def generate_bnn_realization_plot(bnn, t):
     plt.figure()
     plt.plot(realizations)
     plt.savefig('realization.png')
-
-
 
 
 def training_bnn_cpu(config, t, data, conv):
@@ -226,7 +223,7 @@ def training_bnn_cpu(config, t, data, conv):
                     conv=conv)
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],
-                "betas": (0.9, 0.999)}
+                "betas": (0.95, 0.999)}
     optimizer = Adam(adam_params)
     svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO())
     num_iterations = config['training_parameters']['svi_num_iterations']

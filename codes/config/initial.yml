@@ -2,7 +2,7 @@
 continuous:
   name: continuous_initial
   problem: continuous
-  n_t: 400
+  n_t: 100
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01
@@ -40,7 +40,7 @@ continuous:
 discrete:
   name: discrete_initial
   problem: discrete
-  n_t: 400
+  n_t: 100
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01
@@ -78,7 +78,7 @@ discrete:
 combined:
   name: combined_initial
   problem: combined
-  n_t: 400
+  n_t: 100
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01

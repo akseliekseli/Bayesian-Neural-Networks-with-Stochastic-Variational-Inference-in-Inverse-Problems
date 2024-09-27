@@ -1,6 +1,7 @@
 import pickle
 import argparse
 import yaml
+import time
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -269,7 +270,7 @@ def training_bnn_gpu(config, t, A, y_data):
                     layers=config['bnn']['layers'])
     guide = AutoDiagonalNormal(bnn_model)
     adam_params = {"lr": config['training_parameters']['learning_rate'],
-                "betas": (0.9, 0.999)}
+                "betas": (0.95, 0.999)}
     optimizer = Adam(adam_params)
     guide = BNNGuide(bnn_model)
     svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO())
@@ -395,18 +396,20 @@ if __name__ == '__main__':
                                                 domain,
                                                 sigma_noise)
 
-    
+    start = time.time()
     # Convert data to PyTorch tensors
     if device != 'cpu':
         x_preds = training_bnn_gpu(config, t, A, y_data)
     else:
         x_preds = training_bnn_cpu(config, t, A, y_data)
     
+    end = time.time()
     results = dict({'t': t,
                             'x': x,
                             'true': true,
                             'y_data': y_data,
-                            'x_preds': x_preds})
+                            'x_preds': x_preds,
+                            'runtime': end-start})
     
     with open(f'results/{config['name']}.pickle', 'wb') as handle:
         pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)

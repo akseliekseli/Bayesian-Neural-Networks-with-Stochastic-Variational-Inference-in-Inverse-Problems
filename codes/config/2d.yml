@@ -9,26 +9,26 @@ initial:
         weight: 1.
         bias: 1.
         activation: tanh
-        layer_size: 40
+        layer_size: 180
       2:
         type: gaussian
         weight: 1.
         bias: 1.
         activation: tanh
-        layer_size: 10
+        layer_size: 180
       3:
         type: gaussian
-        weight: 1.
-        bias: 1.
+        weight: 0.5
+        bias: 0.5
         activation: tanh
-        layer_size: 50
+        layer_size: 150
       4:
         type: gaussian
-        weight: 1.
-        bias: 1.
+        weight: 0.5
+        bias: 0.5
         activation: 
-        layer_size: 40
+        layer_size: 80
   training_parameters:
-    learning_rate: 0.01
-    svi_num_iterations: 10000
+    learning_rate: 0.0001
+    svi_num_iterations: 200000
     random_seed: 42
