@@ -34,6 +34,7 @@ plt.rcParams.update({
 def generate_realization_plot(configs):
     # Get the initial parameters from the config file
     fig, axs = plt.subplots(1, 3, figsize=(16, 5))
+    results = dict()
     for ii, config in enumerate(configs):
         config = configs[config]
         n_t = config['n_t']
@@ -51,8 +52,11 @@ def generate_realization_plot(configs):
                         n_out=1,
                         layers=config['bnn']['layers'])
         realizations = generate_bnn_realization(bnn_model, t, A)
+        results[str(ii)] = realizations
         axs[ii].plot(t, realizations)
     
+    with open(f'results/prior/priors.pickle', 'wb') as handle:
+        pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
     plt.savefig(f'plots/prior/realizations.eps', format='eps')
     
 
