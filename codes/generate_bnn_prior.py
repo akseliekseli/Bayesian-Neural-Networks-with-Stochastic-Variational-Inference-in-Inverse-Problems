@@ -105,6 +105,7 @@ class BNN(PyroModule):
         sigma = pyro.sample("sigma", dist.Uniform(0, 0.01))  # Example shape and rate parameters
         
         
+        
         if y != None:
             with pyro.plate("data", len(y)):
                 obs = pyro.sample("obs", dist.Normal(y_hat[:,0], sigma), obs=y)
