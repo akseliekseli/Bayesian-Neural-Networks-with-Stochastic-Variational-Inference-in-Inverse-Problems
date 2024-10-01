@@ -13,7 +13,7 @@ continuous:
         weight: 1.0
         bias: 1.0
         activation: tanh
-        layer_size: 100
+        layer_size: 40
       2:
         type: gaussian
         weight: 1.0
@@ -45,22 +45,22 @@ discrete:
   domain: [-1, 1]
   sigma_noise: 0.01
   bnn:
-    layers:    # add n_layers number of layers either gaussian or cauchy
+    layers:
       1:
         type: cauchy
-        weight: 5.
+        weight: 5.0
         bias: 0.1
         activation: tanh
         layer_size: 40
       2:
         type: cauchy
-        weight: 5.
+        weight: 5.0
         bias: 0.1
         activation: tanh
         layer_size: 80
       3:
         type: cauchy
-        weight: 5.
+        weight: 5.0
         bias: 0.1
         activation: tanh
         layer_size: 40
