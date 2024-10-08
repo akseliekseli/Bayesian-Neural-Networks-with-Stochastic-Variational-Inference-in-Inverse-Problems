@@ -17,7 +17,7 @@ from scipy.interpolate import CubicSpline
 import pyro
 import pyro.distributions as dist
 from pyro.nn import PyroModule, PyroSample
-from pyro.infer import SVI, Trace_ELBO
+from pyro.infer import SVI, Trace_ELBO, MCMC, NUTS
 from pyro.infer.autoguide import AutoDiagonalNormal
 from pyro.optim import Adam
 from tqdm.auto import trange
@@ -178,23 +178,17 @@ def training_bnn_cpu(config, t, A, y_data):
     bnn_model = BNN(n_in=1,
                     n_out=1,
                     layers=config['bnn']['layers'])
-    guide = AutoDiagonalNormal(bnn_model)
-    adam_params = {"lr": config['training_parameters']['learning_rate'],
-                "betas": (0.9, 0.999)}
-    optimizer = Adam(adam_params)
-    svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO(num_particles=100))
-    num_iterations = config['training_parameters']['svi_num_iterations']
-    progress_bar = trange(num_iterations)
-    generate_bnn_realization_plot(bnn_model, t, A)
-    for j in progress_bar:
-        loss = svi.step(t, A, y_data)
-        progress_bar.set_description("[iteration %04d] loss: %.4f" % (j + 1, loss / len(t)))
+    start = time.time()
+    nuts_kernel = NUTS(bnn_model, jit_compile=True)
+    mcmc = MCMC(nuts_kernel, num_samples=1000, warmup_steps=1000)
 
+    mcmc.run(t, A, y_data)
+    samples = mcmc.get_samples()
+    print("\nMCMC elapsed time:", time.time() - start)
     # Get predictions for the solution
-    predictive = pyro.infer.Predictive(bnn_model, guide=guide, num_samples=2000, return_sites=["_RETURN", "sigma"])
+    predictive = pyro.infer.Predictive(bnn_model, samples, return_sites=["_RETURN", "sigma"])
     preds = predictive(t, A)
     x_preds = preds['_RETURN']
-    print(f'sigma: {preds["sigma"]}')
     return x_preds
 
 
