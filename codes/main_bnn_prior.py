@@ -182,7 +182,7 @@ def training_bnn_cpu(config, t, A, y_data):
     adam_params = {"lr": config['training_parameters']['learning_rate'],
                 "betas": (0.9, 0.999)}
     optimizer = Adam(adam_params)
-    svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO(num_particles=100))
+    svi = pyro.infer.SVI(bnn_model, guide, optimizer, loss=Trace_ELBO(num_particles=1))
     num_iterations = config['training_parameters']['svi_num_iterations']
     progress_bar = trange(num_iterations)
     generate_bnn_realization_plot(bnn_model, t, A)
