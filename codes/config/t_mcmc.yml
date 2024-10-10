@@ -1,8 +1,8 @@
 
 continuous:
-  name: continuous_initial
+  name: mcmc_continuous_t_400
   problem: continuous
-  n_t: 100
+  n_t: 400
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01
@@ -34,13 +34,13 @@ continuous:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 10000
+    svi_num_iterations: 8000
     random_seed: 42
 
 discrete:
-  name: discrete_initial
+  name: mcmc_discrete_t_400
   problem: discrete
-  n_t: 100
+  n_t: 400
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01
@@ -72,13 +72,13 @@ discrete:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 10000
+    svi_num_iterations: 8000
     random_seed: 42
 
 combined:
-  name: combined_initial
+  name: mcmc_combined_t_400
   problem: combined
-  n_t: 100
+  n_t: 400
   n_y: 100
   domain: [-1, 1]
   sigma_noise: 0.01
@@ -110,5 +110,5 @@ combined:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 10000
+    svi_num_iterations: 8000
     random_seed: 42

@@ -1,4 +1,4 @@
-sigma_002:
+ssigma_002:
   name: combined_sigma_002
   problem: combined
   n_t: 100
@@ -33,7 +33,7 @@ sigma_002:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 8000
+    svi_num_iterations: 10000
     random_seed: 42
 
 sigma_005:
@@ -71,7 +71,7 @@ sigma_005:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 8000
+    svi_num_iterations: 10000
     random_seed: 42
 
 sigma_01:
@@ -109,5 +109,5 @@ sigma_01:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 8000
+    svi_num_iterations: 10000
     random_seed: 42

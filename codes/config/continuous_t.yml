@@ -33,7 +33,7 @@ continuous_t_200:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 8000
+    svi_num_iterations: 10000
     random_seed: 42
 
 continuous_t_300:
@@ -71,7 +71,7 @@ continuous_t_300:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 8000
+    svi_num_iterations: 10000
     random_seed: 42
 
 continuous_t_400:
@@ -109,5 +109,5 @@ continuous_t_400:
         layer_size: 80
   training_parameters:
     learning_rate: 0.01
-    svi_num_iterations: 8000
+    svi_num_iterations: 10000
     random_seed: 42
