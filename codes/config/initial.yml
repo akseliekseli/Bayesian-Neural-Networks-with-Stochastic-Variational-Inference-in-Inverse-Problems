@@ -89,7 +89,7 @@ combined:
         weight: 1.0
         bias: 1.0
         activation: tanh
-        layer_size: 100
+        layer_size: 40
       2:
         type: cauchy
         weight: 1.0
