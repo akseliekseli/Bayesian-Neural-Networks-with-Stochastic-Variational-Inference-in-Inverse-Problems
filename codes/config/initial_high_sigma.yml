@@ -1,6 +1,6 @@
 
 continuous:
-  name: continuous_initial
+  name: continuous_high_sigma
   problem: continuous
   n_t: 100
   n_y: 100
@@ -10,26 +10,26 @@ continuous:
     layers:
       1:
         type: gaussian
-        weight: 1.0
-        bias: 1.0
+        weight: 10.0
+        bias: 10.0
         activation: tanh
         layer_size: 40
       2:
         type: gaussian
-        weight: 1.0
-        bias: 1.0
+        weight: 10.0
+        bias: 10.0
         activation: tanh
         layer_size: 80
       3:
         type: gaussian
-        weight: 1.0
-        bias: 1.0
+        weight: 10.0
+        bias: 10.0
         activation: tanh
         layer_size: 40
       4:
         type: gaussian
-        weight: 1.0
-        bias: 1.0
+        weight: 10.0
+        bias: 10.0
         activation: 
         layer_size: 80
   training_parameters:
@@ -38,7 +38,7 @@ continuous:
     random_seed: 42
 
 discrete:
-  name: discrete_initial
+  name: discrete_high_sigma
   problem: discrete
   n_t: 100
   n_y: 100
@@ -47,27 +47,27 @@ discrete:
   bnn:
     layers:
       1:
-        type: cauchy
-        weight: 5.0
-        bias: 0.1
+        type: gaussian
+        weight: 10.0
+        bias: 10.0
         activation: tanh
         layer_size: 40
       2:
-        type: cauchy
-        weight: 5.0
-        bias: 0.1
+        type: gaussian
+        weight: 10.0
+        bias: 10.0
         activation: tanh
         layer_size: 80
       3:
-        type: cauchy
-        weight: 5.0
-        bias: 0.1
+        type: gaussian
+        weight: 10.0
+        bias: 10.0
         activation: tanh
         layer_size: 40
       4:
-        type: cauchy
-        weight: 2.0
-        bias: 3.0
+        type: gaussian
+        weight: 10.0
+        bias: 10.0
         activation: 
         layer_size: 80
   training_parameters:
@@ -76,7 +76,7 @@ discrete:
     random_seed: 42
 
 combined:
-  name: combined_initial
+  name: combined_high_sigma
   problem: combined
   n_t: 100
   n_y: 100
@@ -86,26 +86,26 @@ combined:
     layers:
       1:
         type: gaussian
-        weight: 1.0
-        bias: 1.0
+        weight: 10.0
+        bias: 10.0
         activation: tanh
         layer_size: 40
       2:
-        type: cauchy
-        weight: 1.0
-        bias: 1.0
+        type: gaussian
+        weight: 10.0
+        bias: 10.0
         activation: tanh
         layer_size: 80
       3:
-        type: cauchy
-        weight: 1.0
-        bias: 1.0
+        type: gaussian
+        weight: 10.0
+        bias: 10.0
         activation: tanh
         layer_size: 40
       4:
         type: gaussian
-        weight: 2.0
-        bias: 2.0
+        weight: 10.0
+        bias: 10.0
         activation: 
         layer_size: 80
   training_parameters:
